@@ -1,5 +1,6 @@
 package com.atomist.rug.compiler.typescript;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -96,7 +97,15 @@ public class TypeScriptCompiler implements Compiler {
                 return new Source(URI.create(filename), source.findFile(filename).get().content());
             }
             else {
-                return parentSourceFactory.getSource(filename, baseFilename);
+                try {
+                    return parentSourceFactory.getSource(filename, baseFilename);
+                }
+                catch (Exception e) {
+                    // search the global dir
+                    return parentSourceFactory.getSource(
+                            System.getProperty("user.home") + File.separator + "." + filename,
+                            baseFilename);
+                }
             }
         }
     }

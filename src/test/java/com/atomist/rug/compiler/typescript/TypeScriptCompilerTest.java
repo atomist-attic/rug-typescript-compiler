@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -12,6 +14,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import com.atomist.rug.compiler.CompilerRegistry;
@@ -50,35 +53,45 @@ public class TypeScriptCompilerTest {
     public void testCompileUserModel() throws ScriptException {
         ArtifactSource source = new FileSystemArtifactSource(
                 new SimpleFileSystemArtifactSourceIdentifier(new File("../user-model")));
-        
+
         TypeScriptCompiler compiler = new TypeScriptCompiler();
         assertTrue(compiler.supports(source));
         ArtifactSource result = compiler.compile(source);
-        
+
         String jsContents = result.findFile(".atomist/editors/SimpleEditor.js").get().content();
-        
+
         ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
         engine.eval("exports = {}");
         engine.eval(jsContents);
         engine.eval("var editor = new SimpleEditor();");
-        ScriptObjectMirror editor = (ScriptObjectMirror) engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE).get("editor");
-        
+        ScriptObjectMirror editor = (ScriptObjectMirror) engine.getContext()
+                .getBindings(ScriptContext.ENGINE_SCOPE).get("editor");
+
         ProjectMutableView pmv = new ProjectMutableView(new EmptyArtifactSource(""), source);
         String resultString = (String) editor.callMember("edit", pmv, new Object());
-        
-        System.setProperty("RUG_TYPINGS", "/Users/cdupuis/Development/atomist/user-model/.atomist/editors/");
-        
+
         jsContents = result.findFile(".atomist/editors/ConstructedEditor.js").get().content();
         engine = new ScriptEngineManager(null).getEngineByName("nashorn");
         engine.eval("exports = {}");
-        engine.eval(source.findFile(".atomist/typings/jvm-npm.js").get().content());
+
+        try {
+            String npmJs = IOUtils.toString(getClass().getResourceAsStream("/jvm-npm.js"),
+                    StandardCharsets.UTF_8);
+            engine.eval(npmJs);
+        }
+        catch (IOException e) {
+        }
+
         engine.eval(jsContents);
+
         engine.eval("var editor = new ConstructedEditor();");
-        editor = (ScriptObjectMirror) engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE).get("editor");
-        
-//        ProjectMutableView pmv = new ProjectMutableView(new EmptyArtifactSource(""), source);
-//        String resultString = (String) editor.callMember("edit", pmv, new Object());
-//        System.out.println(resultString + " " + JavaConversions.asJavaCollection(source.allFiles()).size());
+        editor = (ScriptObjectMirror) engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE)
+                .get("editor");
+
+        // ProjectMutableView pmv = new ProjectMutableView(new EmptyArtifactSource(""), source);
+        // String resultString = (String) editor.callMember("edit", pmv, new Object());
+        // System.out.println(resultString + " " +
+        // JavaConversions.asJavaCollection(source.allFiles()).size());
     }
 
     @Test
