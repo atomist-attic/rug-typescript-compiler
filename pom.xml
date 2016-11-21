@@ -36,6 +36,12 @@
 			<groupId>com.atomist</groupId>
 			<artifactId>rug-lib</artifactId>
 			<version>${rug-lib.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.atomist</groupId>
+					<artifactId>atomist-bom</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.undercouch</groupId>
