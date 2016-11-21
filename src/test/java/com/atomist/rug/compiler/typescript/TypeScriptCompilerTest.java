@@ -19,8 +19,20 @@ import scala.collection.JavaConversions;
 
 public class TypeScriptCompilerTest {
 
-    private String editorTS = "class SimpleEditor  {\n" + "\n" + "    edit() {\n"
-            + "        return \"yeah\"\n" + "    }\n" + "}\n" + "";
+    private String editorTS = "//import Project from \"./Project\";\n" + 
+            "//import File from \"./Project\";\n" + 
+            "\n" + 
+            "/**\n" + 
+            "  Simple editor with no parameters\n" + 
+            "*/\n" + 
+            "class SimpleEditor implements ProjectEditor<Parameters> {\n" + 
+            "\n" + 
+            "    edit(project: Project, p: Parameters) {\n" + 
+            "        p.validate();\n" + 
+            "        project.addFile(\"src/from/typescript\", \"Anders Hjelsberg is God\");\n" + 
+            "        return `Edited Project now containing ${project.fileCount()} files: \\n`;\n" + 
+            "    }\n" + 
+            "}";
 
     @Test
     public void testCompile() {
