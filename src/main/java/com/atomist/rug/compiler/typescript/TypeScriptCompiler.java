@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.atomist.project.archive.DefaultAtomistConfig$;
 import com.atomist.rug.compiler.Compiler;
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.FileArtifact;
@@ -61,7 +60,7 @@ public class TypeScriptCompiler implements Compiler {
 
     protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
         List<FileArtifact> files = JavaConversions.asJavaCollection(source.allFiles()).stream()
-                .filter(f -> f.path().startsWith(DefaultAtomistConfig$.MODULE$.atomistRoot())
+                .filter(f -> f.path().startsWith(".atomist/")
                         && f.name().endsWith(".ts"))
                 .collect(Collectors.toList());
         return files;
