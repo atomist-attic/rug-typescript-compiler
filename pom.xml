@@ -7,7 +7,7 @@
 	<artifactId>typescript-rug-compiler</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>typescript-compiler</name>
+	<name>typescript-rug-compiler</name>
 	<description>TypeScript compiler for Atomist Rug</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -15,7 +15,6 @@
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<java.version>1.8</java.version>
 		<maven.version>3.3.9</maven.version>
-		<rug-lib.version>1.4.1-20161121103619</rug-lib.version>
 	</properties>
 	<organization>
 		<name>Atomist, Inc.</name>
@@ -35,7 +34,7 @@
 		<dependency>
 			<groupId>com.atomist</groupId>
 			<artifactId>rug-compiler</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>0.1.0-20161122150734</version>
 		</dependency>
 		<dependency>
 			<groupId>de.undercouch</groupId>
