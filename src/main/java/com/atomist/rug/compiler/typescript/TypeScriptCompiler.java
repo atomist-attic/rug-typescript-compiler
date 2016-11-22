@@ -6,6 +6,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
+
 import com.atomist.rug.compiler.Compiler;
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.FileArtifact;
@@ -101,10 +103,20 @@ public class TypeScriptCompiler implements Compiler {
                     return parentSourceFactory.getSource(filename, baseFilename);
                 }
                 catch (Exception e) {
-                    // search the global dir
-                    return parentSourceFactory.getSource(
-                            System.getProperty("user.home") + File.separator + "." + filename,
-                            baseFilename);
+                    File root = new File(System.getProperty("user.dir"));
+                    while (root.getParent() != null) {
+                        File nodeModules = new File(root, "node_modules");
+                        if (nodeModules.exists()) {
+                            try {
+                            return parentSourceFactory.getSource(
+                                    root.getAbsolutePath() + File.separator + filename,
+                                    baseFilename);
+                            }
+                            catch (Exception ex) {}
+                        }
+                        root = root.getParentFile();
+                    }
+                    throw e;
                 }
             }
         }

@@ -58,7 +58,6 @@ public class TypeScriptCompilerTest {
         assertTrue(compiler.supports(source));
         ArtifactSource result = compiler.compile(source);
         
-        
         String complexJsContents = result.findFile(".atomist/editors/MyEditor.js").get().content();
         System.out.println(complexJsContents);
         
