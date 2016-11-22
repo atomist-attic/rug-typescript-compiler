@@ -6,13 +6,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
-
+import com.atomist.project.archive.DefaultAtomistConfig$;
 import com.atomist.rug.compiler.Compiler;
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.FileArtifact;
 import com.atomist.source.StringFileArtifact;
-import com.atomist.project.archive.DefaultAtomistConfig$;
 
 import de.undercouch.vertx.lang.typescript.TypeScriptClassLoader;
 import de.undercouch.vertx.lang.typescript.cache.InMemoryCache;

@@ -63,36 +63,35 @@ public class TypeScriptCompilerTest {
         
         String jsContents = result.findFile(".atomist/editors/SimpleEditor.js").get().content();
         
-        ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
-        engine.eval("exports = {}");
-        engine.eval(jsContents);
+        ScriptEngine engine = prepareScriptEngine(jsContents);
         engine.eval("var editor = new SimpleEditor();");
         ScriptObjectMirror editor = (ScriptObjectMirror) engine.getContext()
                 .getBindings(ScriptContext.ENGINE_SCOPE).get("editor");
-
         ProjectMutableView pmv = new ProjectMutableView(new EmptyArtifactSource(""), source);
         String resultString = (String) editor.callMember("edit", pmv, new Object());
 
+        
         jsContents = result.findFile(".atomist/editors/ConstructedEditor.js").get().content();
-        engine = new ScriptEngineManager(null).getEngineByName("nashorn");
+        engine = prepareScriptEngine(jsContents);
+        engine.eval("var editor = new ConstructedEditor();");
+        editor = (ScriptObjectMirror) engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE)
+                .get("editor");
+        
+    }
+    
+    public ScriptEngine prepareScriptEngine(String contents) throws ScriptException {
+        ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
         engine.eval("exports = {}");
-
         try {
             String npmJs = IOUtils.toString(getClass().getResourceAsStream("/js/jvm-npm.js"),
                     StandardCharsets.UTF_8);
             engine.eval(npmJs);
         }
         catch (IOException e) {
+            // can't really happen as I put it on the classpath
         }
-
-        engine.eval(jsContents);
-
-        engine.eval("var editor = new ConstructedEditor();");
-        editor = (ScriptObjectMirror) engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE)
-                .get("editor");
-        
-        
-        
+        engine.eval(contents);
+        return engine;
     }
 
     @Test
