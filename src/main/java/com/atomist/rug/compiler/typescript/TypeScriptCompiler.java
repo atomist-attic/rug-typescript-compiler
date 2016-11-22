@@ -51,7 +51,8 @@ public class TypeScriptCompiler implements Compiler {
         }).collect(Collectors.toList());
 
         ArtifactSource result = source;
-        for (FileArtifact compileFile : compiledFiles) {
+        for (FileArtifact compileFile : compiledFiles.stream().filter(c -> c != null)
+                .collect(Collectors.toList())) {
             result = result.plus(compileFile);
         }
 
@@ -101,14 +102,15 @@ public class TypeScriptCompiler implements Compiler {
                 return new Source(URI.create(filename), source.findFile(filename).get().content());
             }
             else {
-                // tsc searches for dependencies in node_modules directory. 
+                // tsc searches for dependencies in node_modules directory.
                 // we are remapping this onto the classpath
                 if (filename.startsWith("node_modules/")) {
                     filename = filename.replace("node_modules/", "");
                 }
-                
+
                 // First try the classpath
-                InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+                InputStream is = Thread.currentThread().getContextClassLoader()
+                        .getResourceAsStream(filename);
                 if (is != null) {
                     return Source.fromStream(is, URI.create(filename), StandardCharsets.UTF_8);
                 }

@@ -247,10 +247,13 @@ module = (typeof module === 'undefined') ? {} : module;
     }
 
     function resolveClasspathModule(id, root) {
+        System.out.println("1 " + id + " " + root);
         var name = normalizeName(id);
+        System.out.println("2 " + name);
         var classloader = java.lang.Thread.currentThread().getContextClassLoader();
         var is = classloader.getResourceAsStream(name);
         if (is) {
+            System.out.println("3 " + name);
             return {
                 path: name,
                 core: true
