@@ -48,6 +48,10 @@
 				</exclusion>
 				<exclusion>
 					<groupId>io.vertx</groupId>
+					<artifactId>vertx-lang-utils</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.vertx</groupId>
 					<artifactId>vertx-lang-js</artifactId>
 				</exclusion>
 			</exclusions>

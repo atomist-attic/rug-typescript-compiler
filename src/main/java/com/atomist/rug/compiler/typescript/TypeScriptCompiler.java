@@ -1,8 +1,9 @@
 package com.atomist.rug.compiler.typescript;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,9 @@ public class TypeScriptCompiler implements Compiler {
             }
             catch (IOException e) {
                 // handle exception
+                e.printStackTrace();
+            }
+            catch (RuntimeException e) {
                 e.printStackTrace();
             }
             return null;
@@ -97,25 +101,38 @@ public class TypeScriptCompiler implements Compiler {
                 return new Source(URI.create(filename), source.findFile(filename).get().content());
             }
             else {
-                try {
-                    return parentSourceFactory.getSource(filename, baseFilename);
+                // tsc searches for dependencies in node_modules directory. 
+                // we are remapping this onto the classpath
+                if (filename.startsWith("node_modules/")) {
+                    filename = filename.replace("node_modules/", "");
                 }
-                catch (Exception e) {
-                    File root = new File(System.getProperty("user.dir"));
-                    while (root.getParent() != null) {
-                        File nodeModules = new File(root, "node_modules");
-                        if (nodeModules.exists()) {
-                            try {
-                            return parentSourceFactory.getSource(
-                                    root.getAbsolutePath() + File.separator + filename,
-                                    baseFilename);
-                            }
-                            catch (Exception ex) {}
-                        }
-                        root = root.getParentFile();
-                    }
-                    throw e;
+                
+                // First try the classpath
+                InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+                if (is != null) {
+                    return Source.fromStream(is, URI.create(filename), StandardCharsets.UTF_8);
                 }
+                return parentSourceFactory.getSource(filename, baseFilename);
+
+                // Second iterate up the working directory and search for node_modules
+                // try {
+                // return parentSourceFactory.getSource(filename, baseFilename);
+                // }
+                // catch (Exception e) {
+                // File root = new File(System.getProperty("user.dir"));
+                // while (root.getParent() != null) {
+                // File nodeModules = new File(root, "node_modules");
+                // if (nodeModules.exists()) {
+                // try {
+                // return parentSourceFactory.getSource(
+                // root.getAbsolutePath() + File.separator + filename,
+                // baseFilename);
+                // }
+                // catch (Exception ex) {}
+                // }
+                // root = root.getParentFile();
+                // }
+                // }
             }
         }
     }
