@@ -57,9 +57,13 @@ public class TypeScriptCompilerTest {
         TypeScriptCompiler compiler = new TypeScriptCompiler();
         assertTrue(compiler.supports(source));
         ArtifactSource result = compiler.compile(source);
-
+        
+        
+        String complexJsContents = result.findFile(".atomist/editors/MyEditor.js").get().content();
+        System.out.println(complexJsContents);
+        
         String jsContents = result.findFile(".atomist/editors/SimpleEditor.js").get().content();
-
+        
         ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
         engine.eval("exports = {}");
         engine.eval(jsContents);
@@ -75,7 +79,7 @@ public class TypeScriptCompilerTest {
         engine.eval("exports = {}");
 
         try {
-            String npmJs = IOUtils.toString(getClass().getResourceAsStream("/jvm-npm.js"),
+            String npmJs = IOUtils.toString(getClass().getResourceAsStream("/js/jvm-npm.js"),
                     StandardCharsets.UTF_8);
             engine.eval(npmJs);
         }
@@ -87,11 +91,9 @@ public class TypeScriptCompilerTest {
         engine.eval("var editor = new ConstructedEditor();");
         editor = (ScriptObjectMirror) engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE)
                 .get("editor");
-
-        // ProjectMutableView pmv = new ProjectMutableView(new EmptyArtifactSource(""), source);
-        // String resultString = (String) editor.callMember("edit", pmv, new Object());
-        // System.out.println(resultString + " " +
-        // JavaConversions.asJavaCollection(source.allFiles()).size());
+        
+        
+        
     }
 
     @Test
