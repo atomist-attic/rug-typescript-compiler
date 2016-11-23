@@ -11,9 +11,15 @@ interface Project {
 
 interface File {
 
+    name(): string
+
     path(): string
 
     content(): string
+
+    append(what: string): void
+    
+    prepend(what: string): void
 }
 
 export { Project }

@@ -1,4 +1,4 @@
-import {Project} from '../model/Core'
+import {Project} from 'user-model/model/Core'
 
 interface Parameters {
   // TODO should return a detailed failure? Or exception...

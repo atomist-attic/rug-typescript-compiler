@@ -1,35 +1,36 @@
 import {Project} from 'user-model/model/Core'
-import {Config} from 'user-model/operations/Config'
 import {ParametersSupport} from 'user-model/operations/ProjectEditor'
 import {ProjectEditor} from 'user-model/operations/ProjectEditor'
 import {Parameters} from 'user-model/operations/ProjectEditor'
 import {PathExpression} from 'user-model/operations/PathExpression'
+import {PathExpressionEngine} from 'user-model/operations/PathExpression'
 import {Match} from 'user-model/operations/PathExpression'
 import {File} from 'user-model/model/Core'
 
-interface ConstructedEditorConfig extends Config {
-
-  defaultX(): string
-
-}
-
+import {parameter} from 'user-model/support/Metadata'
+import {inject} from 'user-model/support/Metadata'
+import {parameters} from 'user-model/support/Metadata'
+import {tag} from 'user-model/support/Metadata'
+import {editor} from 'user-model/support/Metadata'
 
 abstract class JavaInfo extends ParametersSupport {
 
+  @parameter({description: "The Java package name", displayName: "Java Package", pattern: ".*", maxLength: 100})
   packageName: string = null
 
 }
-
+@editor("A nice little editor")
+@tag("java")
+@tag("maven")
 class ConstructedEditor implements ProjectEditor<Parameters> {
 
-    config: ConstructedEditorConfig
+    @inject("PathExpressionEngine")
+    eng: PathExpressionEngine
 
-    constructor(config: ConstructedEditorConfig) { this.config = config }
-
-    edit(project: Project, ji: JavaInfo) {
+    edit(project: Project, @parameters("JavaInfo") ji: JavaInfo) {
 
       let pe = new PathExpression<Project,File>(`/*:file[name='pom.xml']`)
-      let m: Match<Project,File> = this.config.eng().evaluate(project, pe)
+      let m: Match<Project,File> = this.eng.evaluate(project, pe)
 
       var t: string = `param=${ji.packageName},filecount=${m.root().fileCount()}`
       for (let n of m.matches())
