@@ -15,6 +15,7 @@
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<java.version>1.8</java.version>
 		<maven.version>3.3.9</maven.version>
+		<temp.dir>${project.basedir}/target/temp</temp.dir>
 	</properties>
 	<organization>
 		<name>Atomist, Inc.</name>
@@ -37,27 +38,38 @@
 			<version>0.1.0-20161122150734</version>
 		</dependency>
 		<dependency>
-			<groupId>de.undercouch</groupId>
-			<artifactId>vertx-lang-typescript</artifactId>
-			<version>1.2.0-patched</version>
+			<groupId>atomist-typescript</groupId>
+			<artifactId>user-model</artifactId>
+			<version>0.1.2</version>
+			<type>zip</type>
+			<scope>test</scope>
 			<exclusions>
 				<exclusion>
-					<groupId>io.vertx</groupId>
-					<artifactId>vertx-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>io.vertx</groupId>
-					<artifactId>vertx-lang-utils</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>io.vertx</groupId>
-					<artifactId>vertx-lang-js</artifactId>
+					<groupId>com.atomist</groupId>
+					<artifactId>rug-lib</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-access</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -78,7 +90,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.5.1</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -126,7 +138,66 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- clean out our custom temp directory as well as the default dir during 
+				clean phase -->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${temp.dir}</directory>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			<!-- since the config dependency is a zip it does not get added to the 
+				classpath. So we extract it to a temp dir, then copy the content we need 
+				into a directory on the classpath -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.8</version>
+				<executions>
+					<execution>
+						<id>unpack-config</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeGroupIds>atomist-typescript</includeGroupIds>
+							<includeArtifactIds>user-model</includeArtifactIds>
+							<outputDirectory>${temp.dir}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- copy the content of the zip file that we extracted into a directory 
+				on the classpath -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${temp.dir}</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
+
 	</build>
 	<profiles>
 		<profile>
@@ -182,7 +253,7 @@
 			<activation>
 				<os>
 					<family>linux</family>
- 					<!--<arch>x86_64</arch>-->
+					<!-- <arch>x86_64</arch> -->
 				</os>
 			</activation>
 			<dependencies>
@@ -196,32 +267,32 @@
 	</profiles>
 	<repositories>
 		<repository>
-			<id>atomist-release</id>
-			<name>Atomist Release</name>
-			<url>https://atomist.jfrog.io/atomist/libs-release</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
+			<id>atomist-release</id>
+			<name>Atomist Release</name>
+			<url>https://sforzando.artifactoryonline.com/sforzando/libs-release</url>
 		</repository>
 		<repository>
-			<id>atomist-snapshots</id>
-			<name>Atomist Snapshots</name>
-			<url>https://atomist.jfrog.io/atomist/libs-snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
+			<id>atomist-snapshots</id>
+			<name>Atomist Snapshots</name>
+			<url>https://sforzando.artifactoryonline.com/sforzando/libs-snapshot</url>
 		</repository>
 	</repositories>
 	<distributionManagement>
 		<repository>
 			<id>atomist-release</id>
 			<name>Atomist Release</name>
-			<url>https://atomist.jfrog.io/atomist/libs-release-local</url>
+			<url>https://sforzando.artifactoryonline.com/sforzando/libs-release-local</url>
 		</repository>
 		<snapshotRepository>
 			<id>atomist-snapshots</id>
 			<name>Atomist Snapshots</name>
-			<url>https://atomist.jfrog.io/atomist/libs-snapshot-local</url>
+			<url>https://sforzando.artifactoryonline.com/sforzando/libs-snapshot-local</url>
 		</snapshotRepository>
 	</distributionManagement>
 </project>

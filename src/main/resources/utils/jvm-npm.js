@@ -23,6 +23,8 @@ module = (typeof module === 'undefined') ? {} : module;
     var Scanner = java.util.Scanner;
     var File = java.io.File;
 
+    var resolver = Packages.com.atomist.rug.compiler.typescript.TypeScriptClasspathResolver;
+
     NativeRequire = (typeof NativeRequire === 'undefined') ? {} : NativeRequire;
     if (typeof require === 'function' && !NativeRequire.require) {
         NativeRequire.require = require;
@@ -247,13 +249,9 @@ module = (typeof module === 'undefined') ? {} : module;
     }
 
     function resolveClasspathModule(id, root) {
-        //System.out.println("1 " + id + " " + root);
         var name = normalizeName(id);
-        //System.out.println("2 " + name);
-        var classloader = java.lang.Thread.currentThread().getContextClassLoader();
-        var is = classloader.getResourceAsStream(name);
+        var is = resolver.resolve(name, root);
         if (is) {
-            //System.out.println("3 " + name);
             return {
                 path: name,
                 core: true
@@ -277,8 +275,7 @@ module = (typeof module === 'undefined') ? {} : module;
         var input;
         try {
             if (core) {
-                var classloader = java.lang.Thread.currentThread().getContextClassLoader();
-                input = classloader.getResourceAsStream(filename);
+                input = resolver.resolve(filename, core);
             } else {
                 input = new File(filename);
             }

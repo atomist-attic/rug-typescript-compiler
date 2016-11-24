@@ -19,17 +19,21 @@ abstract class JavaInfo extends ParametersSupport {
   packageName: string = null
 
 }
+
 @editor("A nice little editor")
 @tag("java")
 @tag("maven")
 class ConstructedEditor implements ProjectEditor<Parameters> {
 
-    @inject("PathExpressionEngine")
-    eng: PathExpressionEngine
+    private eng: PathExpressionEngine;
 
+    constructor(@inject("PathExpressionEngine") _eng: PathExpressionEngine ){
+      this.eng = _eng;
+    }
     edit(project: Project, @parameters("JavaInfo") ji: JavaInfo) {
 
       let pe = new PathExpression<Project,File>(`/*:file[name='pom.xml']`)
+      //console.log(pe.expression);
       let m: Match<Project,File> = this.eng.evaluate(project, pe)
 
       var t: string = `param=${ji.packageName},filecount=${m.root().fileCount()}`
@@ -44,3 +48,4 @@ class ConstructedEditor implements ProjectEditor<Parameters> {
         return `${t}\n\nEdited Project containing ${project.fileCount()} files: \n${s}`;
     }
   }
+ 
