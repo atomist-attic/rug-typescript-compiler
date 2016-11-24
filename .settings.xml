@@ -2,13 +2,13 @@
   <servers>
     <server>
       <id>atomist-snapshots</id>
-      <username>${env.MVN_USERNAME}</username>
-      <password>${env.MVN_PASSWORD}</password>
+      <username>${env.ATOMIST_CI_DEPLOY_USERNAME}</username>
+      <password>${env.ATOMIST_CI_DEPLOY_PASSWORD}</password>
     </server>
     <server>
       <id>atomist-release</id>
-      <username>${env.MVN_USERNAME}</username>
-      <password>${env.MVN_PASSWORD}</password>
+      <username>${env.ATOMIST_CI_DEPLOY_USERNAME}</username>
+      <password>${env.ATOMIST_CI_DEPLOY_PASSWORD}</password>
     </server>
   </servers>
 </settings>

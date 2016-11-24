@@ -58,7 +58,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -79,7 +78,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.5.1</version>
+				<version>3.6.0</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -127,9 +126,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--<plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId>
-				<version>2.7.2</version> <configuration> <workingDirectory>src/test/resources/common-editors</workingDirectory>
-				</configuration> </plugin> -->
 		</plugins>
 	</build>
 	<profiles>
@@ -186,7 +182,7 @@
 			<activation>
 				<os>
 					<family>linux</family>
-<!-- 					<arch>x86_64</arch> -->
+ 					<!--<arch>x86_64</arch>-->
 				</os>
 			</activation>
 			<dependencies>
@@ -200,32 +196,33 @@
 	</profiles>
 	<repositories>
 		<repository>
+			<id>atomist-release</id>
+			<name>Atomist Release</name>
+			<url>https://atomist.jfrog.io/atomist/libs-release</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
-			<id>atomist-release</id>
-			<name>Atomist Release</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-release</url>
 		</repository>
 		<repository>
+			<id>atomist-snapshots</id>
+			<name>Atomist Snapshots</name>
+			<url>https://atomist.jfrog.io/atomist/libs-snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-			<id>atomist-snapshots</id>
-			<name>Atomist Snapshots</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-snapshot</url>
 		</repository>
 	</repositories>
 	<distributionManagement>
 		<repository>
 			<id>atomist-release</id>
 			<name>Atomist Release</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-release-local</url>
+			<url>https://atomist.jfrog.io/atomist/libs-release-local</url>
 		</repository>
 		<snapshotRepository>
 			<id>atomist-snapshots</id>
 			<name>Atomist Snapshots</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-snapshot-local</url>
+			<url>https://atomist.jfrog.io/atomist/libs-snapshot-local</url>
 		</snapshotRepository>
 	</distributionManagement>
+</project>
 </project>
