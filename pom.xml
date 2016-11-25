@@ -266,33 +266,33 @@
 		</profile>
 	</profiles>
 	<repositories>
-		<repository>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>atomist-release</id>
-			<name>Atomist Release</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-release</url>
-		</repository>
-		<repository>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<id>atomist-snapshots</id>
-			<name>Atomist Snapshots</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-snapshot</url>
-		</repository>
-	</repositories>
-	<distributionManagement>
-		<repository>
-			<id>atomist-release</id>
-			<name>Atomist Release</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-release-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>atomist-snapshots</id>
-			<name>Atomist Snapshots</name>
-			<url>https://sforzando.artifactoryonline.com/sforzando/libs-snapshot-local</url>
-		</snapshotRepository>
-	</distributionManagement>
+      <repository>
+          <id>atomist-release</id>
+          <name>Atomist Release</name>
+          <url>https://atomist.jfrog.io/atomist/libs-release</url>
+          <snapshots>
+              <enabled>false</enabled>
+          </snapshots>
+      </repository>
+      <repository>
+          <id>atomist-snapshots</id>
+          <name>Atomist Snapshots</name>
+          <url>https://atomist.jfrog.io/atomist/libs-snapshot</url>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+      </repository>
+    </repositories>
+    <distributionManagement>
+      <repository>
+            <id>atomist-release</id>
+            <name>Atomist Release</name>
+            <url>https://atomist.jfrog.io/atomist/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>atomist-snapshots</id>
+            <name>Atomist Snapshots</name>
+            <url>https://atomist.jfrog.io/atomist/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
