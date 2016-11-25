@@ -23,11 +23,13 @@ module = (typeof module === 'undefined') ? {} : module;
     var Scanner = java.util.Scanner;
     var File = java.io.File;
 
-    var resolver = Packages.com.atomist.rug.compiler.typescript.TypeScriptClasspathResolver;
-
     NativeRequire = (typeof NativeRequire === 'undefined') ? {} : NativeRequire;
     if (typeof require === 'function' && !NativeRequire.require) {
         NativeRequire.require = require;
+    }
+
+    if (!sourceFileLoader) {
+      throw "Please use com.atomist.rug.compiler.typescript.TypeScriptHelper to create your Nashorn ScriptEngine";
     }
 
     function Module(id, parent, core) {
@@ -239,8 +241,7 @@ module = (typeof module === 'undefined') ? {} : module;
 
     function resolveCoreModule(id, root) {
         var name = normalizeName(id);
-        var classloader = java.lang.Thread.currentThread().getContextClassLoader();
-        if (classloader.getResource(name)) {
+        if (sourceFileLoader.getSourceAsStream(name, root)) {
             return {
                 path: name,
                 core: true
@@ -250,7 +251,7 @@ module = (typeof module === 'undefined') ? {} : module;
 
     function resolveClasspathModule(id, root) {
         var name = normalizeName(id);
-        var is = resolver.resolve(name, root);
+        var is = sourceFileLoader.getSourceAsStream(name, root);
         if (is) {
             return {
                 path: name,
@@ -275,7 +276,7 @@ module = (typeof module === 'undefined') ? {} : module;
         var input;
         try {
             if (core) {
-                input = resolver.resolve(filename, core);
+              input = sourceFileLoader.getSourceAsStream(filename, "");
             } else {
                 input = new File(filename);
             }

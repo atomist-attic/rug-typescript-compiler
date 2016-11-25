@@ -1,7 +1,5 @@
 package com.atomist.rug.compiler.typescript;
 
-import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,24 +25,22 @@ public class TypeScriptCompiler implements Compiler {
         if (compiler == null) {
             initCompiler();
         }
-        SourceFileLoader sourceFactory = new ArtifactSourceSourceFileLoader(source, compiler);
+        
+        DefaultSourceFileLoader defaultLoader = new DefaultSourceFileLoader(compiler);
+        SourceFileLoader artifactSourceLoader = new ArtifactSourceSourceFileLoader(source, defaultLoader);
 
         List<FileArtifact> files = filterSourceFiles(source);
         List<FileArtifact> compiledFiles = files.stream().map(f -> {
             try {
-                String compiled = compiler.compile(f.path(), sourceFactory);
+                String compiled = compiler.compile(f.path(), artifactSourceLoader);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Successfully compiled typescript {} to \n{}", f.path(), compiled);
                 }
                 return new StringFileArtifact(f.name().replace(".ts", ".js"), f.pathElements(),
                         compiled);
             }
-            catch (IOException e) {
-                // handle exception
-                e.printStackTrace();
-            }
-            catch (RuntimeException e) {
-                e.printStackTrace();
+            catch (Exception e) {
+                handleException(e);
             }
             return null;
         }).collect(Collectors.toList());
@@ -54,8 +50,13 @@ public class TypeScriptCompiler implements Compiler {
                 .collect(Collectors.toList())) {
             result = result.plus(compileFile);
         }
-
+        
         return result;
+    }
+
+    @Override
+    public boolean supports(ArtifactSource source) {
+        return !filterSourceFiles(source).isEmpty();
     }
 
     protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
@@ -66,9 +67,16 @@ public class TypeScriptCompiler implements Compiler {
         return files;
     }
 
-    @Override
-    public boolean supports(ArtifactSource source) {
-        return !filterSourceFiles(source).isEmpty();
+    private void handleException(Exception e) {
+        String msg = e.getMessage();
+        if (msg.contains("<#>")) {
+            int start = msg.indexOf("<#>") + 3;
+            int end = msg.lastIndexOf("<#>");
+            throw new TypeScriptCompilationException(msg.substring(start, end).trim());
+        }
+        else {
+            throw new TypeScriptCompilationException("Compilation failed", e);
+        }
     }
 
     private synchronized void initCompiler() {
@@ -76,30 +84,7 @@ public class TypeScriptCompiler implements Compiler {
             compiler = new V8Compiler();
         }
         else {
-            // throw
-        }
-    }
-
-    private static class ArtifactSourceSourceFileLoader implements SourceFileLoader {
-
-        private final ArtifactSource source;
-        private final SourceFileLoader sourceFactory;
-
-        public ArtifactSourceSourceFileLoader(ArtifactSource source, V8Compiler compiler) {
-            this.source = source;
-            this.sourceFactory = new DefaultSourceFileLoader();
-        }
-
-        @Override
-        public SourceFile getSource(String filename, String baseFilename) throws IOException {
-            if (source.findFile(filename).isDefined()) {
-                return new SourceFile(URI.create(filename),
-                        source.findFile(filename).get().content());
-            }
-            else {
-                // Delegate to resolution from outside the artifact
-                return sourceFactory.getSource(filename, baseFilename);
-            }
+            throw new TypeScriptException("J2V8 not found");
         }
     }
 }

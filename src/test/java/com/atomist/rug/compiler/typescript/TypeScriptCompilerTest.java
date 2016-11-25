@@ -2,20 +2,16 @@ package com.atomist.rug.compiler.typescript;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.atomist.rug.compiler.CompilerRegistry;
@@ -40,7 +36,6 @@ public class TypeScriptCompilerTest {
             + "        rurn \"yeah\"\n" + "    }\n" + "}\n" + "";
 
     @Test
-    @Ignore
     public void testBrokenCompile() {
         ArtifactSource source = new EmptyArtifactSource("test");
         FileArtifact file = new StringFileArtifact("MyEditor.ts", JavaConversions
@@ -49,8 +44,13 @@ public class TypeScriptCompilerTest {
 
         TypeScriptCompiler compiler = new TypeScriptCompiler();
         assertTrue(compiler.supports(source));
-        ArtifactSource result = compiler.compile(source);
-        assertTrue(result.findFile(".atomist/editors/MyEditor.js").isDefined());
+        try {
+            ArtifactSource result = compiler.compile(source);
+            fail();
+        }
+        catch (TypeScriptCompilationException e) {
+            assertEquals(".atomist/editors/MyEditor.ts(4,14): error TS1005: ';' expected.", e.getMessage());
+        }
     }
 
     @Test
@@ -97,17 +97,9 @@ public class TypeScriptCompilerTest {
     }
     
     public ScriptEngine prepareScriptEngine(String contents) throws ScriptException {
-        ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
-        engine.eval("exports = {}");
-        try {
-            String npmJs = IOUtils.toString(getClass().getResourceAsStream("/utils/jvm-npm.js"),
-                    StandardCharsets.UTF_8);
-            engine.eval(npmJs);
-        }
-        catch (IOException e) {
-            // can't really happen as I put it on the classpath
-        }
+        ScriptEngine engine = TypeScriptHelper.createEngine();
         engine.eval(contents);
+        engine.eval("require('user-model/model/Core.js')");
         return engine;
     }
 

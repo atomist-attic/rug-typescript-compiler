@@ -1,70 +1,134 @@
 package com.atomist.rug.compiler.typescript;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.atomist.rug.compiler.typescript.v8.V8Compiler;
 
 public class DefaultSourceFileLoader implements SourceFileLoader {
 
-    private Map<String, SourceFile> sourceCache = new HashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(DefaultSourceFileLoader.class);
 
+    private V8Compiler compiler;
+
+    private Map<String, SourceFile> cache = new ConcurrentHashMap<>();
+
+    public DefaultSourceFileLoader(V8Compiler compiler) {
+        this.compiler = compiler;
+    }
+    
     @Override
     public SourceFile getSource(String name, String baseFilename) throws IOException {
+        SourceFile result = doGetSource(name, baseFilename);
 
-        // tsc searches for dependencies in node_modules directory.
-        // we are remapping those onto the classpath
-        InputStream is = TypeScriptClasspathResolver.resolve(name, baseFilename);
-        if (is != null) {
-            return SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
-        }
-
-        if (baseFilename != null && (name.startsWith("./") || name.startsWith("../"))) {
-            // resolve relative path
-            SourceFile baseSource = getSource(baseFilename, null);
-            if (baseSource != null) {
-                name = baseSource.uri().resolve(name).normalize().toString();
+        if (result == null && name.endsWith(".js")) {
+            String jsName = name.replace(".js", ".ts");
+            SourceFile source = doGetSource(jsName, baseFilename);
+            if (source != null) {
+                String compiled = compiler.compile(jsName, this);
+                result = SourceFile.fromStream(new ByteArrayInputStream(compiled.getBytes()),
+                        URI.create(jsName), StandardCharsets.UTF_8);
             }
         }
 
-        SourceFile result = sourceCache.get(name);
+        if (result != null) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Resolved {} from {} to {}", name, baseFilename, result.uri());
+            }
+        }
+        else {
+            logger.warn("Failed to resolve {} from {}", name, baseFilename);
+        }
+
+        return result;
+    }
+    
+    public InputStream getSourceAsStream(String name, String baseFilename) throws IOException {
+        SourceFile source = getSource(name, baseFilename);
+        if (source != null) {
+            return new ByteArrayInputStream(source.contents().getBytes());
+        }
+        else {
+            return null;
+        }
+    }
+
+    protected SourceFile doGetSource(String name, String baseFilename) throws IOException {
+
+        SourceFile result = cache.get(name);
         if (result == null) {
-            // check if we've got a URL
-            URL u;
+            
+            // tsc searches for dependencies in node_modules directory.
+            // We are remapping those onto the classpath
+            String file = name;
+            int ix = file.lastIndexOf("node_modules/");
+            if (ix > 0) {
+                file = file.substring(ix + "node_modules/".length());
+
+                // First try the classpath with normalized name
+                InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
+                if (is != null) {
+                    result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
+                    cache.put(name, result);
+                    return result;
+                }
+            }
+
+            // First segment is the module name which we don't have on the classpath
+            ix = file.indexOf('/');
+            file = file.substring(ix + 1);
+            InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
+            
+            if (is != null) {
+                result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
+                cache.put(name, result);
+                return result;
+            }
+
+            if (baseFilename != null && (name.startsWith("./") || name.startsWith("../"))) {
+                // resolve relative path
+                SourceFile baseSource = getSource(baseFilename, null);
+                if (baseSource != null) {
+                    name = baseSource.uri().resolve(name).normalize().toString();
+                }
+            }
+
+            // Require on urls is possible
+            URL url;
             if (name.matches("^[a-z]+:/.*")) {
                 try {
-                    u = new URL(name);
+                    url = new URL(name);
                 }
                 catch (MalformedURLException e) {
                     // no URL, might be a Windows path instead
-                    u = null;
+                    url = null;
                 }
             }
             else {
-                u = null;
+                url = null;
             }
 
-            // search class path
-            if (u == null) {
-                u = Thread.currentThread().getContextClassLoader().getResource(name);
+            // Search the class path again
+            if (url == null) {
+                url = Thread.currentThread().getContextClassLoader().getResource(name);
             }
-            if (u != null) {
-                result = SourceFile.fromURL(u, StandardCharsets.UTF_8);
+            if (url != null) {
+                result = SourceFile.fromURL(url, StandardCharsets.UTF_8);
             }
-
-            // search file system (will throw if the file could not be found)
-            if (result == null) {
-                result = SourceFile.fromFile(new File(name), StandardCharsets.UTF_8);
+            
+            if (result != null) {
+                cache.put(name, result);
             }
-
-            // at this point 'result' should never be null
-            assert result != null;
-            sourceCache.put(name, result);
         }
 
         return result;
