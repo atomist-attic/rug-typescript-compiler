@@ -23,21 +23,33 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
     private Map<String, SourceFile> cache = new ConcurrentHashMap<>();
 
+    private Map<String, SourceFile> compiledCache = new ConcurrentHashMap<>();
+
     public DefaultSourceFileLoader(V8Compiler compiler) {
         this.compiler = compiler;
     }
-    
+
     @Override
     public SourceFile getSource(String name, String baseFilename) throws IOException {
         SourceFile result = doGetSource(name, baseFilename);
 
         if (result == null && name.endsWith(".js")) {
             String jsName = name.replace(".js", ".ts");
-            SourceFile source = doGetSource(jsName, baseFilename);
-            if (source != null) {
-                String compiled = compiler.compile(jsName, this);
-                result = SourceFile.fromStream(new ByteArrayInputStream(compiled.getBytes()),
-                        URI.create(jsName), StandardCharsets.UTF_8);
+
+            if (compiledCache.containsKey(jsName)) {
+                result = compiledCache.get(jsName);
+            }
+            else {
+                SourceFile source = doGetSource(jsName, baseFilename);
+                if (source != null) {
+                    String compiled = compiler.compile(jsName, this);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Successfully compiled typescript {} to \n{}", name, compiled);
+                    }
+                    result = SourceFile.fromStream(new ByteArrayInputStream(compiled.getBytes()),
+                            URI.create(jsName), StandardCharsets.UTF_8);
+                    compiledCache.put(jsName, result);
+                }
             }
         }
 
@@ -52,7 +64,7 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
         return result;
     }
-    
+
     public InputStream getSourceAsStream(String name, String baseFilename) throws IOException {
         SourceFile source = getSource(name, baseFilename);
         if (source != null) {
@@ -67,7 +79,7 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
         SourceFile result = cache.get(name);
         if (result == null) {
-            
+
             // tsc searches for dependencies in node_modules directory.
             // We are remapping those onto the classpath
             String file = name;
@@ -76,7 +88,8 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                 file = file.substring(ix + "node_modules/".length());
 
                 // First try the classpath with normalized name
-                InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
+                InputStream is = Thread.currentThread().getContextClassLoader()
+                        .getResourceAsStream(file);
                 if (is != null) {
                     result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
                     cache.put(name, result);
@@ -87,8 +100,9 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
             // First segment is the module name which we don't have on the classpath
             ix = file.indexOf('/');
             file = file.substring(ix + 1);
-            InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
-            
+            InputStream is = Thread.currentThread().getContextClassLoader()
+                    .getResourceAsStream(file);
+
             if (is != null) {
                 result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
                 cache.put(name, result);
@@ -125,7 +139,7 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
             if (url != null) {
                 result = SourceFile.fromURL(url, StandardCharsets.UTF_8);
             }
-            
+
             if (result != null) {
                 cache.put(name, result);
             }
