@@ -1,7 +1,9 @@
 package com.atomist.rug.compiler.typescript;
 
 import java.util.List;
+import java.util.Objects;
 
+import com.atomist.source.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +16,7 @@ import com.atomist.source.StringFileArtifact;
 import scala.collection.JavaConversions;
 
 import static java.util.stream.Collectors.toList;
+import static scala.collection.JavaConversions.*;
 
 public class TypeScriptCompiler implements Compiler {
 
@@ -46,13 +49,8 @@ public class TypeScriptCompiler implements Compiler {
             return null;
         }).collect(toList());
 
-        ArtifactSource result = source;
-        for (FileArtifact compileFile : compiledFiles.stream().filter(c -> c != null)
-                .collect(toList())) {
-            result = result.plus(compileFile);
-        }
-
-        return result;
+        List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull).collect(toList());
+        return source.plus(JavaConversions.asScalaBuffer(artifacts));
     }
 
     @Override
@@ -61,11 +59,10 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
-        List<FileArtifact> files = JavaConversions.asJavaCollection(source.allFiles()).stream()
+        return asJavaCollection(source.allFiles()).stream()
                 .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts"))
                 .filter(f -> !f.path().startsWith(".atomist/node_modules/"))
                 .collect(toList());
-        return files;
     }
 
     private void handleException(Exception e) {
