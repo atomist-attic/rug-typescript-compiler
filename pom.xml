@@ -4,10 +4,10 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.atomist</groupId>
-	<artifactId>typescript-rug-compiler</artifactId>
+	<artifactId>rug-typescript-compiler</artifactId>
 	<version>0.1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>typescript-rug-compiler</name>
+	<name>rug-typescript-compiler</name>
 	<description>TypeScript compiler for Atomist Rug</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
