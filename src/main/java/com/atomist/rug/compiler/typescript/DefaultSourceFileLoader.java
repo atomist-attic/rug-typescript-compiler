@@ -30,7 +30,7 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
     public DefaultSourceFileLoader(Compiler compiler) {
         this(compiler, null);
     }
-    
+
     public DefaultSourceFileLoader(Compiler compiler, ScriptEngine engine) {
         this.compiler = compiler;
         this.engine = engine;
@@ -53,19 +53,6 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Successfully compiled typescript {} to \n{}", name, compiled);
                     }
-                    
-                    try {
-                        if (engine != null) {
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("Successfully evaluated js for {} in engine", name);
-                            }
-                            engine.eval(compiled);
-                        }
-                    }
-                    catch (ScriptException e) {
-                        e.printStackTrace();
-                    }
-                    
                     result = SourceFile.createFrom(new ByteArrayInputStream(compiled.getBytes()),
                             URI.create(jsName));
                     compiledCache.put(jsName, result);
@@ -80,6 +67,20 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
         }
         else {
             LOGGER.warn("Failed to resolve {} from {}", name, baseFilename);
+        }
+
+        if (name.endsWith(".js")) {
+            try {
+                if (engine != null && result != null) {
+                    engine.eval(result.contents());
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Successfully evaluated js for {} in engine", name);
+                    }
+                }
+            }
+            catch (ScriptException e) {
+                throw new TypeScriptException("Error loading " + name, e);
+            }
         }
 
         return result;
