@@ -1,17 +1,10 @@
-import {Project} from 'user-model/model/Core'
-import {ParametersSupport} from 'user-model/operations/ProjectEditor'
-import {ProjectEditor} from 'user-model/operations/ProjectEditor'
-import {Parameters} from 'user-model/operations/ProjectEditor'
-import {PathExpression} from 'user-model/operations/PathExpression'
-import {PathExpressionEngine} from 'user-model/operations/PathExpression'
-import {Match} from 'user-model/operations/PathExpression'
-import {File} from 'user-model/model/Core'
-
-import {parameter} from 'user-model/support/Metadata'
-import {inject} from 'user-model/support/Metadata'
-import {parameters} from 'user-model/support/Metadata'
-import {tag} from 'user-model/support/Metadata'
-import {editor} from 'user-model/support/Metadata'
+import {Project} from '@atomist/rug/model/Core'
+import {ProjectEditor} from '@atomist/rug/operations/ProjectEditor'
+import {Parameters, ParametersSupport} from '@atomist/rug/operations/Parameters'
+import {PathExpression, PathExpressionEngine, Match} from '@atomist/rug/tree/PathExpression'
+import {File} from '@atomist/rug/model/Core'
+import {Status, Result} from '@atomist/rug/operations/Result'
+import {parameter, inject, parameters, tag, editor} from '@atomist/rug/support/Metadata'
 
 abstract class JavaInfo extends ParametersSupport {
 
@@ -45,7 +38,7 @@ class ConstructedEditor implements ProjectEditor<Parameters> {
         project.addFile("src/from/typescript", "Anders Hjelsberg is God");
         for (let f of project.files())
             s = s + `File [${f.path()}] containing [${f.content()}]\n`
-        return `${t}\n\nEdited Project containing ${project.fileCount()} files: \n${s}`;
+        return new Result(Status.Success, `${t}\n\nEdited Project containing ${project.fileCount()} files: \n${s}`);
     }
   }
  
