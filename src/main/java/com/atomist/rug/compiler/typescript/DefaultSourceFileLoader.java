@@ -25,8 +25,8 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
     private ScriptEngine engine;
 
     private Map<String, SourceFile> cache = new ConcurrentHashMap<>();
-    private Map<String, SourceFile> compiledCache = new ConcurrentHashMap<>();y
-    private Map<String, SourceFile> loadedCache = new ConcurrentHashMap<>();y
+    private Map<String, SourceFile> compiledCache = new ConcurrentHashMap<>();
+    private Map<String, SourceFile> loadedCache = new ConcurrentHashMap<>();
 
     public DefaultSourceFileLoader(Compiler compiler) {
         this(compiler, null);
@@ -75,7 +75,6 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                 if (engine != null && result != null) {
                     engine.eval(result.contents());
                     loadedCache.put(name, result);
-                    
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Successfully evaluated js for {} in engine", name);
                     }
