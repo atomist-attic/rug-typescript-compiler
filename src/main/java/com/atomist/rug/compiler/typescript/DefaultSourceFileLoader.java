@@ -96,6 +96,19 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                 catch (IOException e) {
                     throw new TypeScriptException(e.getMessage(), e);
                 }
+
+            }
+
+            try (InputStream is = Thread.currentThread().getContextClassLoader()
+                    .getResourceAsStream(".atomist/node_modules/" + file)) {
+                if (is != null) {
+                    result = SourceFile.createFrom(is, URI.create(name));
+                    cache.put(name, result);
+                    return result;
+                }
+            }
+            catch (IOException e) {
+                throw new TypeScriptException(e.getMessage(), e);
             }
 
             // First segment is the module name which we don't have on the classpath
