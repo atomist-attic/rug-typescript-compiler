@@ -9,6 +9,9 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +22,18 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSourceFileLoader.class);
 
     private Compiler compiler;
+    private ScriptEngine engine;
 
     private Map<String, SourceFile> cache = new ConcurrentHashMap<>();
     private Map<String, SourceFile> compiledCache = new ConcurrentHashMap<>();
 
     public DefaultSourceFileLoader(Compiler compiler) {
+        this(compiler, null);
+    }
+    
+    public DefaultSourceFileLoader(Compiler compiler, ScriptEngine engine) {
         this.compiler = compiler;
+        this.engine = engine;
     }
 
     @Override
@@ -44,6 +53,19 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Successfully compiled typescript {} to \n{}", name, compiled);
                     }
+                    
+                    try {
+                        if (engine != null) {
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Successfully evaluated js for {} in engine", name);
+                            }
+                            engine.eval(compiled);
+                        }
+                    }
+                    catch (ScriptException e) {
+                        e.printStackTrace();
+                    }
+                    
                     result = SourceFile.createFrom(new ByteArrayInputStream(compiled.getBytes()),
                             URI.create(jsName));
                     compiledCache.put(jsName, result);

@@ -6,10 +6,13 @@ function compile(file, sourceFileLoader) {
   // enable commonjs modules
   opts.module = 1; // 1 = CommonJS
   opts.experimentalDecorators = true;
+  opts.emitDecoratorMetadata = true;
+  opts.target = 1; // 0 = ES3
+  //opts.inlineSourceMap = true;
 
   var host = {
     getDefaultLibFileName: function() {
-      return "typescript/lib/" + (opts.target === 2 ? "lib.core.es6.d.ts" : "lib.core.d.ts");
+      return "typescript/lib/lib.d.ts";
     },
     getCurrentDirectory: function() {
       return '';
@@ -67,7 +70,6 @@ function compile(file, sourceFileLoader) {
       }
       return errors;
   }
-
 
   // Collect all errors into errors
   var errors = "";

@@ -27,7 +27,7 @@ public abstract class TypeScriptHelper {
         safeEval("exports = {}", engine);
         
         Bindings bindings = engine.createBindings();
-        bindings.put("sourceFileLoader", sourceFileLoader());
+        bindings.put("sourceFileLoader", sourceFileLoader(engine));
         engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
         
         safeEval(npmModuleLoader(), engine);
@@ -54,8 +54,8 @@ public abstract class TypeScriptHelper {
         }
     }
     
-    private static SourceFileLoader sourceFileLoader() {
-        return new DefaultSourceFileLoader(new V8Compiler());
+    private static SourceFileLoader sourceFileLoader(ScriptEngine engine) {
+        return new DefaultSourceFileLoader(new V8Compiler(), engine);
     }
 
 }
