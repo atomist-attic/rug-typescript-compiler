@@ -64,8 +64,8 @@ public class SourceFile {
 
     public static SourceFile fromFile(File f, Charset cs) throws IOException {
         try (InputStream is = new FileInputStream(f)) {
-          return fromStream(is, f.toURI(), cs);
+            return fromStream(is, f.toURI(), cs);
         }
-      }
+    }
 
 }

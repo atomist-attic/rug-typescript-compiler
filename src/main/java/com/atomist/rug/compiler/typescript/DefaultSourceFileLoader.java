@@ -17,12 +17,10 @@ import com.atomist.rug.compiler.typescript.v8.V8Compiler;
 
 public class DefaultSourceFileLoader implements SourceFileLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultSourceFileLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSourceFileLoader.class);
 
     private V8Compiler compiler;
-
     private Map<String, SourceFile> cache = new ConcurrentHashMap<>();
-
     private Map<String, SourceFile> compiledCache = new ConcurrentHashMap<>();
 
     public DefaultSourceFileLoader(V8Compiler compiler) {
@@ -32,7 +30,6 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
     @Override
     public SourceFile getSource(String name, String baseFilename) throws IOException {
         SourceFile result = doGetSource(name, baseFilename);
-
         if (result == null && name.endsWith(".js")) {
             String jsName = name.replace(".js", ".ts");
 
@@ -43,8 +40,8 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                 SourceFile source = doGetSource(jsName, baseFilename);
                 if (source != null) {
                     String compiled = compiler.compile(jsName, this);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Successfully compiled typescript {} to \n{}", name, compiled);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Successfully compiled typescript {} to \n{}", name, compiled);
                     }
                     result = SourceFile.fromStream(new ByteArrayInputStream(compiled.getBytes()),
                             URI.create(jsName), StandardCharsets.UTF_8);
@@ -54,12 +51,12 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
         }
 
         if (result != null) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Resolved {} from {} to {}", name, baseFilename, result.uri());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Resolved {} from {} to {}", name, baseFilename, result.uri());
             }
         }
         else {
-            logger.warn("Failed to resolve {} from {}", name, baseFilename);
+            LOGGER.warn("Failed to resolve {} from {}", name, baseFilename);
         }
 
         return result;
@@ -67,19 +64,17 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
     public InputStream getSourceAsStream(String name, String baseFilename) throws IOException {
         SourceFile source = getSource(name, baseFilename);
-        if (source != null) {
-            return new ByteArrayInputStream(source.contents().getBytes());
+        if (source == null) {
+            return null;
         }
         else {
-            return null;
+            return new ByteArrayInputStream(source.contents().getBytes());
         }
     }
 
     protected SourceFile doGetSource(String name, String baseFilename) throws IOException {
-
         SourceFile result = cache.get(name);
         if (result == null) {
-
             // tsc searches for dependencies in node_modules directory.
             // We are remapping those onto the classpath
             String file = name;
@@ -88,25 +83,26 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                 file = file.substring(ix + "node_modules/".length());
 
                 // First try the classpath with normalized name
-                InputStream is = Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream(file);
-                if (is != null) {
-                    result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
-                    cache.put(name, result);
-                    return result;
+                try (InputStream is = Thread.currentThread().getContextClassLoader()
+                        .getResourceAsStream(file)) {
+                    if (is != null) {
+                        result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
+                        cache.put(name, result);
+                        return result;
+                    }
                 }
             }
 
             // First segment is the module name which we don't have on the classpath
             ix = file.indexOf('/');
             file = file.substring(ix + 1);
-            InputStream is = Thread.currentThread().getContextClassLoader()
-                    .getResourceAsStream(file);
-
-            if (is != null) {
-                result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
-                cache.put(name, result);
-                return result;
+            try (InputStream is = Thread.currentThread().getContextClassLoader()
+                    .getResourceAsStream(file)) {
+                if (is != null) {
+                    result = SourceFile.fromStream(is, URI.create(name), StandardCharsets.UTF_8);
+                    cache.put(name, result);
+                    return result;
+                }
             }
 
             if (baseFilename != null && (name.startsWith("./") || name.startsWith("../"))) {

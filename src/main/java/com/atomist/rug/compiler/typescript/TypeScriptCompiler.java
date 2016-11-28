@@ -1,7 +1,6 @@
 package com.atomist.rug.compiler.typescript;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +13,11 @@ import com.atomist.source.StringFileArtifact;
 
 import scala.collection.JavaConversions;
 
+import static java.util.stream.Collectors.toList;
+
 public class TypeScriptCompiler implements Compiler {
 
-    private static final Logger logger = LoggerFactory.getLogger(TypeScriptCompiler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TypeScriptCompiler.class);
 
     private V8Compiler compiler;
 
@@ -25,7 +26,7 @@ public class TypeScriptCompiler implements Compiler {
         if (compiler == null) {
             initCompiler();
         }
-        
+
         DefaultSourceFileLoader defaultLoader = new DefaultSourceFileLoader(compiler);
         SourceFileLoader artifactSourceLoader = new ArtifactSourceSourceFileLoader(source, defaultLoader);
 
@@ -33,8 +34,8 @@ public class TypeScriptCompiler implements Compiler {
         List<FileArtifact> compiledFiles = files.stream().map(f -> {
             try {
                 String compiled = compiler.compile(f.path(), artifactSourceLoader);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Successfully compiled typescript {} to \n{}", f.path(), compiled);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Successfully compiled typescript {} to \n{}", f.path(), compiled);
                 }
                 return new StringFileArtifact(f.name().replace(".ts", ".js"), f.pathElements(),
                         compiled);
@@ -43,14 +44,14 @@ public class TypeScriptCompiler implements Compiler {
                 handleException(e);
             }
             return null;
-        }).collect(Collectors.toList());
+        }).collect(toList());
 
         ArtifactSource result = source;
         for (FileArtifact compileFile : compiledFiles.stream().filter(c -> c != null)
-                .collect(Collectors.toList())) {
+                .collect(toList())) {
             result = result.plus(compileFile);
         }
-        
+
         return result;
     }
 
@@ -63,7 +64,7 @@ public class TypeScriptCompiler implements Compiler {
         List<FileArtifact> files = JavaConversions.asJavaCollection(source.allFiles()).stream()
                 .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts"))
                 .filter(f -> !f.path().startsWith(".atomist/node_modules/"))
-                .collect(Collectors.toList());
+                .collect(toList());
         return files;
     }
 
