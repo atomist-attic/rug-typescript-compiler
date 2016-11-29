@@ -68,7 +68,8 @@ public class TypeScriptCompiler implements Compiler {
 
     protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
         return asJavaCollection(source.allFiles()).stream()
-                .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts"))
+                .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts")
+                        && source.findFile(f.path().replace(".ts", ".js")).isEmpty())
                 .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
     }
 
