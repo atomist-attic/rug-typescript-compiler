@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atomist.rug.compiler.typescript.compilation.Compiler;
-import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 
 public class DefaultSourceFileLoader implements SourceFileLoader {
 
@@ -36,10 +35,6 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
     public DefaultSourceFileLoader(Compiler compiler, ScriptEngine engine) {
         this.compiler = compiler;
         this.engine = engine;
-    }
-
-    public DefaultSourceFileLoader(ScriptEngine engine) {
-        this(null, engine);
     }
 
     public InputStream getSourceAsStream(String name, String baseFilename) throws IOException {
@@ -196,15 +191,6 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
     }
 
     private String compile(String jsName) {
-        if (compiler == null) {
-            compiler = CompilerFactory.create();
-        }
-        try {
-            return compiler.compile(jsName, this);
-        }
-        finally {
-            compiler.shutdown();
-            compiler = null;
-        }
+        return compiler.compile(jsName, this);
     }
 }
