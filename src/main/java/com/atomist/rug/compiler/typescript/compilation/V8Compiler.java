@@ -6,6 +6,7 @@ import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.utils.MemoryManager;
 
 public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
 
@@ -20,6 +21,15 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
             IS_ENABLED = false;
         }
     }
+    
+    private MemoryManager memoryManager;
+
+    @Override
+    protected V8 createEngine() {
+        V8 engine = V8.createV8Runtime();
+        memoryManager = new MemoryManager(engine);
+        return engine;
+    }
 
     @Override
     protected void configureEngine(V8 engine) {
@@ -27,11 +37,6 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
         JavaVoidCallback printlnErr = (V8Object receiver,
                 V8Array parameters) -> java.lang.System.out.println(parameters.get(0));
         engine.registerJavaMethod(printlnErr, "_println");
-    }
-
-    @Override
-    protected V8 createEngine() {
-        return V8.createV8Runtime();
     }
 
     @Override
@@ -61,6 +66,12 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
     @Override
     protected void evalScript(V8 engine, String src) {
         engine.executeScript(src);
+    }
+    
+    @Override
+    protected void doShutdown(V8 engine) {
+        memoryManager.release();
+        engine.release();
     }
 
 }

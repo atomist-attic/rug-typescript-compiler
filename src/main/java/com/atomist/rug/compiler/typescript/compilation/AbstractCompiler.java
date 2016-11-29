@@ -22,24 +22,34 @@ public abstract class AbstractCompiler<T> implements Compiler {
     }
 
     @Override
-    public final String compile(String file, SourceFileLoader sourceFileLoader) {
+    public final void init() {
         if (engine == null) {
             engine = createEngine();
             loadScript(TYPESCRIPT_JS);
             loadScript(COMPILE_JS);
             configureEngine(engine);
         }
-        return doCompile(engine, file, sourceFileLoader);
     }
 
-    protected void configureEngine(T engine) {
-        
+    @Override
+    public String compile(String filename, SourceFileLoader sourceFileLoader) {
+        return doCompile(engine, filename, sourceFileLoader);
+    }
+
+    @Override
+    public final void shutdown() {
+        doShutdown(engine);
     }
 
     protected abstract T createEngine();
+
+    protected void configureEngine(T engine) {
+    }
 
     protected abstract void evalScript(T engine, String src);
 
     protected abstract String doCompile(T engine, String file, SourceFileLoader sourceFileLoader);
 
+    protected void doShutdown(T engine) {
+    }
 }

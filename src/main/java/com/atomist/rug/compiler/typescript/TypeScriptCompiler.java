@@ -32,29 +32,36 @@ public class TypeScriptCompiler implements Compiler {
         if (compiler == null) {
             initCompiler();
         }
+        try {
+            DefaultSourceFileLoader defaultLoader = new DefaultSourceFileLoader(compiler);
+            SourceFileLoader artifactSourceLoader = new ArtifactSourceSourceFileLoader(source,
+                    defaultLoader);
 
-        DefaultSourceFileLoader defaultLoader = new DefaultSourceFileLoader(compiler);
-        SourceFileLoader artifactSourceLoader = new ArtifactSourceSourceFileLoader(source,
-                defaultLoader);
-
-        List<FileArtifact> files = filterSourceFiles(source);
-        List<FileArtifact> compiledFiles = files.stream().map(f -> {
-            try {
-                String compiled = compiler.compile(f.path(), artifactSourceLoader);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Successfully compiled typescript {} to \n{}", f.path(), compiled);
+            List<FileArtifact> files = filterSourceFiles(source);
+            List<FileArtifact> compiledFiles = files.stream().map(f -> {
+                try {
+                    String compiled = compiler.compile(f.path(), artifactSourceLoader);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Successfully compiled typescript {} to \n{}", f.path(),
+                                compiled);
+                    }
+                    return new StringFileArtifact(f.name().replace(".ts", ".js"), f.pathElements(),
+                            compiled);
                 }
-                return new StringFileArtifact(f.name().replace(".ts", ".js"), f.pathElements(),
-                        compiled);
-            }
-            catch (Exception e) {
-                handleException(e);
-            }
-            return null;
-        }).collect(toList());
+                catch (Exception e) {
+                    handleException(e);
+                }
+                return null;
+            }).collect(toList());
 
-        List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull).collect(toList());
-        return source.plus(JavaConversions.asScalaBuffer(artifacts));
+            List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull)
+                    .collect(toList());
+            return source.plus(JavaConversions.asScalaBuffer(artifacts));
+        }
+        finally {
+            compiler.shutdown();
+            compiler = null;
+        }
     }
 
     @Override
@@ -65,8 +72,7 @@ public class TypeScriptCompiler implements Compiler {
     protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
         return asJavaCollection(source.allFiles()).stream()
                 .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts"))
-                .filter(f -> !f.path().startsWith(".atomist/node_modules/"))
-                .collect(toList());
+                .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
     }
 
     private void handleException(Exception e) {
@@ -91,5 +97,6 @@ public class TypeScriptCompiler implements Compiler {
         else {
             throw new TypeScriptCompilationException("No suitable compiler available");
         }
+        compiler.init();
     }
 }
