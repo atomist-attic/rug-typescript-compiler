@@ -11,8 +11,6 @@ import javax.script.ScriptException;
 
 import org.apache.commons.io.IOUtils;
 
-import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
-
 public abstract class TypeScriptHelper {
 
     public static ScriptEngine createEngine() {
@@ -55,7 +53,7 @@ public abstract class TypeScriptHelper {
     }
 
     private static SourceFileLoader sourceFileLoader(ScriptEngine engine) {
-        return new DefaultSourceFileLoader(CompilerFactory.create(), engine);
+        return new DefaultSourceFileLoader(engine);
     }
 
 }

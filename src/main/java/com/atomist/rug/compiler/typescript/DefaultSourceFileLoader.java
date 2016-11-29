@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atomist.rug.compiler.typescript.compilation.Compiler;
+import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 
 public class DefaultSourceFileLoader implements SourceFileLoader {
 
@@ -30,6 +31,10 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
     public DefaultSourceFileLoader(Compiler compiler) {
         this(compiler, null);
+    }
+
+    public DefaultSourceFileLoader(ScriptEngine engine) {
+        this(null, engine);
     }
 
     public DefaultSourceFileLoader(Compiler compiler, ScriptEngine engine) {
@@ -50,7 +55,7 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
             else {
                 SourceFile source = doSourceFor(jsName, baseFilename);
                 if (source != null) {
-                    String compiled = compiler.compile(jsName, this);
+                    String compiled = compile(jsName);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Successfully compiled typescript {} to \n{}", name, compiled);
                     }
@@ -86,6 +91,19 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
         }
 
         return result;
+    }
+
+    protected String compile(String jsName) {
+        if (compiler == null) {
+            compiler = CompilerFactory.create();
+        }
+        try {
+            return compiler.compile(jsName, this);
+        }
+        finally {
+            compiler.shutdown();
+            compiler = null;
+        }
     }
 
     public InputStream getSourceAsStream(String name, String baseFilename) throws IOException {
