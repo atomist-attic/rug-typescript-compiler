@@ -11,17 +11,21 @@ import javax.script.ScriptException;
 
 import org.apache.commons.io.IOUtils;
 
-public abstract class TypeScriptHelper {
+import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 
-    public static ScriptEngine createEngine() {
+public class TypeScriptCompilerContext {
+    
+    private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
+
+    public ScriptEngine init() {
         ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
         if (engine == null) {
             throw new TypeScriptException("Nashorn ScriptEngine not found");
         }
-        return prepareEngine(engine);
+        return init(engine);
     }
 
-    public static ScriptEngine prepareEngine(ScriptEngine engine) {
+    public ScriptEngine init(ScriptEngine engine) {
         safeEval("exports = {}", engine);
 
         Bindings bindings = engine.createBindings();
@@ -31,10 +35,14 @@ public abstract class TypeScriptHelper {
         safeEval(npmModuleLoader(), engine);
         return engine;
     }
+    
+    public void shutdown() {
+        compiler.shutdown();
+    }
 
-    private static String npmModuleLoader() {
+    private String npmModuleLoader() {
         try {
-            return IOUtils.toString(TypeScriptHelper.class.getResourceAsStream("/utils/jvm-npm.js"),
+            return IOUtils.toString(TypeScriptCompilerContext.class.getResourceAsStream("/utils/jvm-npm.js"),
                     StandardCharsets.UTF_8);
         }
         catch (IOException e) {
@@ -43,7 +51,7 @@ public abstract class TypeScriptHelper {
         return "require = {}";
     }
 
-    private static void safeEval(String script, ScriptEngine engine) {
+    private void safeEval(String script, ScriptEngine engine) {
         try {
             engine.eval(script);
         }
@@ -52,8 +60,9 @@ public abstract class TypeScriptHelper {
         }
     }
 
-    private static SourceFileLoader sourceFileLoader(ScriptEngine engine) {
-        return new DefaultSourceFileLoader(engine);
+    private SourceFileLoader sourceFileLoader(ScriptEngine engine) {
+        compiler = CompilerFactory.create();
+        return new DefaultSourceFileLoader(compiler, engine);
     }
 
 }

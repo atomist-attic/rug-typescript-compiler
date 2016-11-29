@@ -97,7 +97,7 @@ public class TypeScriptCompilerTest {
     }
     
     public ScriptEngine prepareScriptEngine(String contents) throws ScriptException {
-        ScriptEngine engine = TypeScriptHelper.createEngine();
+        ScriptEngine engine = new TypeScriptCompilerContext().init();
         engine.eval(contents);
         return engine;
     }

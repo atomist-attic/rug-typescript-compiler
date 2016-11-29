@@ -22,24 +22,34 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSourceFileLoader.class);
 
-    private Compiler compiler;
-    private ScriptEngine engine;
-
     private Map<String, SourceFile> cache = new ConcurrentHashMap<>();
     private Map<String, SourceFile> compiledCache = new ConcurrentHashMap<>();
+
+    private Compiler compiler;
+    private ScriptEngine engine;
     private Map<String, SourceFile> loadedCache = new ConcurrentHashMap<>();
 
     public DefaultSourceFileLoader(Compiler compiler) {
         this(compiler, null);
     }
 
+    public DefaultSourceFileLoader(Compiler compiler, ScriptEngine engine) {
+        this.compiler = compiler;
+        this.engine = engine;
+    }
+
     public DefaultSourceFileLoader(ScriptEngine engine) {
         this(null, engine);
     }
 
-    public DefaultSourceFileLoader(Compiler compiler, ScriptEngine engine) {
-        this.compiler = compiler;
-        this.engine = engine;
+    public InputStream getSourceAsStream(String name, String baseFilename) throws IOException {
+        SourceFile source = sourceFor(name, baseFilename);
+        if (source != null) {
+            return new ByteArrayInputStream(source.contents().getBytes());
+        }
+        else {
+            return null;
+        }
     }
 
     @Override
@@ -91,29 +101,6 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
         }
 
         return result;
-    }
-
-    protected String compile(String jsName) {
-        if (compiler == null) {
-            compiler = CompilerFactory.create();
-        }
-        try {
-            return compiler.compile(jsName, this);
-        }
-        finally {
-            compiler.shutdown();
-            compiler = null;
-        }
-    }
-
-    public InputStream getSourceAsStream(String name, String baseFilename) throws IOException {
-        SourceFile source = sourceFor(name, baseFilename);
-        if (source != null) {
-            return new ByteArrayInputStream(source.contents().getBytes());
-        }
-        else {
-            return null;
-        }
     }
 
     protected SourceFile doSourceFor(String name, String baseFilename) {
@@ -206,5 +193,18 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
         }
 
         return result;
+    }
+
+    private String compile(String jsName) {
+        if (compiler == null) {
+            compiler = CompilerFactory.create();
+        }
+        try {
+            return compiler.compile(jsName, this);
+        }
+        finally {
+            compiler.shutdown();
+            compiler = null;
+        }
     }
 }

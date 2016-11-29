@@ -29,7 +29,7 @@ module = (typeof module === 'undefined') ? {} : module;
     }
 
     if (!sourceFileLoader) {
-      throw "Please use com.atomist.rug.compiler.typescript.TypeScriptHelper to create your Nashorn ScriptEngine";
+      throw "Please use com.atomist.rug.compiler.typescript.TypeScriptCompilerContext to create your Nashorn ScriptEngine";
     }
 
     function Module(id, parent, core) {
