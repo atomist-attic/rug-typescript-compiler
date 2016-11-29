@@ -10,8 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atomist.rug.compiler.Compiler;
-import com.atomist.rug.compiler.typescript.compilation.NashornCompiler;
-import com.atomist.rug.compiler.typescript.compilation.V8Compiler;
+import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 import com.atomist.source.Artifact;
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.FileArtifact;
@@ -22,8 +21,6 @@ import scala.collection.JavaConversions;
 public class TypeScriptCompiler implements Compiler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeScriptCompiler.class);
-    private static final boolean DISABLE_V8 = (System.getenv("RUG_DISABLE_V8") != null);
-    private static final boolean DISABLE_NASHORN = (System.getenv("RUG_DISABLE_NASHORN") != null);
 
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
 
@@ -88,15 +85,6 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     private synchronized void initCompiler() {
-        if (V8Compiler.IS_ENABLED && !DISABLE_V8) {
-            compiler = new V8Compiler();
-        }
-        else if (NashornCompiler.IS_ENABLED && !DISABLE_NASHORN) {
-            compiler = new NashornCompiler();
-        }
-        else {
-            throw new TypeScriptCompilationException("No suitable compiler available");
-        }
-        compiler.init();
+        compiler = CompilerFactory.create();
     }
 }

@@ -11,10 +11,10 @@ import javax.script.ScriptException;
 
 import org.apache.commons.io.IOUtils;
 
-import com.atomist.rug.compiler.typescript.compilation.V8Compiler;
+import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 
 public abstract class TypeScriptHelper {
-    
+
     public static ScriptEngine createEngine() {
         ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
         if (engine == null) {
@@ -22,18 +22,18 @@ public abstract class TypeScriptHelper {
         }
         return prepareEngine(engine);
     }
-    
+
     public static ScriptEngine prepareEngine(ScriptEngine engine) {
         safeEval("exports = {}", engine);
-        
+
         Bindings bindings = engine.createBindings();
         bindings.put("sourceFileLoader", sourceFileLoader(engine));
         engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-        
+
         safeEval(npmModuleLoader(), engine);
         return engine;
     }
-    
+
     private static String npmModuleLoader() {
         try {
             return IOUtils.toString(TypeScriptHelper.class.getResourceAsStream("/utils/jvm-npm.js"),
@@ -53,9 +53,9 @@ public abstract class TypeScriptHelper {
             throw new TypeScriptException("Error evaluating script", e);
         }
     }
-    
+
     private static SourceFileLoader sourceFileLoader(ScriptEngine engine) {
-        return new DefaultSourceFileLoader(new V8Compiler(), engine);
+        return new DefaultSourceFileLoader(CompilerFactory.create(), engine);
     }
 
 }

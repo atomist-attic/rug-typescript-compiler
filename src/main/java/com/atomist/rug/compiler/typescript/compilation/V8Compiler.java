@@ -21,7 +21,7 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
             IS_ENABLED = false;
         }
     }
-    
+
     private MemoryManager memoryManager;
 
     @Override
@@ -54,24 +54,22 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
         args.push(file);
         args.push(engineSourceFileLoader);
 
-        try {
-            return engine.executeStringFunction("compile", args);
-        }
-        finally {
-            args.release();
-            engineSourceFileLoader.release();
-        }
+        return engine.executeStringFunction("compile", args);
     }
 
     @Override
     protected void evalScript(V8 engine, String src) {
         engine.executeScript(src);
     }
-    
+
     @Override
     protected void doShutdown(V8 engine) {
         memoryManager.release();
         engine.release();
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        shutdown();
+    }
 }
