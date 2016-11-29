@@ -124,6 +124,21 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
             }
 
+            // This is for exploded node_modules on the classpath
+            try (InputStream is = Thread.currentThread().getContextClassLoader()
+                    .getResourceAsStream("node_modules/" + file)) {
+                if (is != null) {
+                    result = SourceFile.createFrom(is, URI.create(name));
+                    cache.put(name, result);
+                    return result;
+                }
+            }
+            catch (IOException e) {
+                throw new TypeScriptException(e.getMessage(), e);
+            }
+
+            // Required for resolving from within Rug archives that have their node_modules under
+            // .atomist
             try (InputStream is = Thread.currentThread().getContextClassLoader()
                     .getResourceAsStream(".atomist/node_modules/" + file)) {
                 if (is != null) {
@@ -136,23 +151,8 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                 throw new TypeScriptException(e.getMessage(), e);
             }
 
-            // First segment is the module name which we don't have on the classpath
-            ix = file.indexOf('/');
-            file = file.substring(ix + 1);
-            try (InputStream is = Thread.currentThread().getContextClassLoader()
-                    .getResourceAsStream(file)) {
-                if (is != null) {
-                    result = SourceFile.createFrom(is, URI.create(name));
-                    cache.put(name, result);
-                    return result;
-                }
-            }
-            catch (IOException e) {
-                throw new TypeScriptException(e.getMessage(), e);
-            }
-
+            // Resolve relative path
             if (baseFilename != null && (name.startsWith("./") || name.startsWith("../"))) {
-                // resolve relative path
                 SourceFile baseSource = sourceFor(baseFilename, null);
                 if (baseSource != null) {
                     name = baseSource.uri().resolve(name).normalize().toString();

@@ -99,7 +99,6 @@ public class TypeScriptCompilerTest {
     public ScriptEngine prepareScriptEngine(String contents) throws ScriptException {
         ScriptEngine engine = TypeScriptHelper.createEngine();
         engine.eval(contents);
-        engine.eval("require('user-model/model/Core.js')");
         return engine;
     }
 
