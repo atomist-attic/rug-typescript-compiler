@@ -54,7 +54,7 @@ Be sure to change the `<version>` to the one you want to use.
 
 ## Support
 
-General support questions should be discussed in the `#rug-typescript`
+General support questions should be discussed in the `#support`
 channel on our community slack team
 at [atomist-community.slack.com](https://join.atomist.com).
 
@@ -80,10 +80,10 @@ appropriate [semantic version][semver] for release.  For example:
 $ git tag -a 1.2.3
 ```
 
-The [Travis CI][travis] build will automatically create a GitHub
-release using the tag name for the release and the comment provided on
-the annotated tag as the contents of the release notes.  It will also
-automatically upload the needed artifacts.
+The Travis CI build (see badge at the top of this page) will
+automatically create a GitHub release using the tag name for the
+release and the comment provided on the annotated tag as the contents
+of the release notes.  It will also automatically upload the needed
+artifacts.
 
 [semver]: http://semver.org
-[travis]: https://travis-ci.org/atomist/rug-typescript-compiler
