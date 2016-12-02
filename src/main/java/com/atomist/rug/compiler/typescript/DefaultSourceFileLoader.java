@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Map;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.script.ScriptEngine;
@@ -27,6 +28,7 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
     private Compiler compiler;
     private ScriptEngine engine;
     private Map<String, SourceFile> loadedCache = new ConcurrentHashMap<>();
+    private Stack<SourceFile> currentContext = new Stack<>();
 
     public DefaultSourceFileLoader(Compiler compiler) {
         this(compiler, null);
@@ -83,7 +85,9 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
         if (name.endsWith(".js") && !loadedCache.containsKey(name)) {
             try {
                 if (engine != null && result != null) {
+                    currentContext.push(result);
                     engine.eval(result.contents());
+                    currentContext.pop();
                     loadedCache.put(name, result);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Successfully evaluated js for {} in engine", name);
@@ -102,6 +106,43 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
         SourceFile result = cache.get(name);
         if (result == null) {
+
+            // Resolve relative path
+            if (baseFilename != null && (name.startsWith("./") || name.startsWith("../"))) {
+                SourceFile baseSource = sourceFor(baseFilename, null);
+                if (baseSource != null) {
+                    name = baseSource.uri().resolve(name).normalize().toString();
+                }
+                else {
+                    SourceFile context = currentContext.peek();
+                    if (context != null) {
+                        URI uri = context.uri().resolve(name).normalize();
+                        // This case is needed to exploded resolution
+                        if (uri.isAbsolute()) {
+                            try {
+                                result = SourceFile.createFrom(uri.toURL());
+                                if (result != null) {
+                                    cache.put(name, result);
+                                    return result;
+                                }
+                            }
+                            catch (MalformedURLException e) {
+                                throw new TypeScriptException(e.getMessage(), e);
+                            }
+                        }
+                        // Here we dealing with resolution from classpath
+                        else {
+                            result = sourceFor(uri.toString(), baseFilename);
+                            if (result != null) {
+                                cache.put(name, result);
+                                return result;
+                            }
+                        }
+
+                    }
+                }
+            }
+
             // tsc searches for dependencies in node_modules directory.
             // We are remapping those onto the classpath
             String file = name;
@@ -149,14 +190,6 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
             }
             catch (IOException e) {
                 throw new TypeScriptException(e.getMessage(), e);
-            }
-
-            // Resolve relative path
-            if (baseFilename != null && (name.startsWith("./") || name.startsWith("../"))) {
-                SourceFile baseSource = sourceFor(baseFilename, null);
-                if (baseSource != null) {
-                    name = baseSource.uri().resolve(name).normalize().toString();
-                }
             }
 
             // Require on urls is possible
