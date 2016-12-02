@@ -26,15 +26,18 @@ public class TypeScriptCompiler implements Compiler {
 
     @Override
     public ArtifactSource compile(ArtifactSource source) {
-        if (compiler == null) {
-            initCompiler();
-        }
         try {
             DefaultSourceFileLoader defaultLoader = new DefaultSourceFileLoader(compiler);
             SourceFileLoader artifactSourceLoader = new ArtifactSourceSourceFileLoader(source,
                     defaultLoader);
 
             List<FileArtifact> files = filterSourceFiles(source);
+
+            // Only init the compiler if there is something to compile
+            if (files.size() > 0 && compiler == null) {
+                initCompiler();
+            }
+
             List<FileArtifact> compiledFiles = files.stream().map(f -> {
                 try {
                     String compiled = compiler.compile(f.path(), artifactSourceLoader);
@@ -56,7 +59,9 @@ public class TypeScriptCompiler implements Compiler {
             return source.plus(JavaConversions.asScalaBuffer(artifacts));
         }
         finally {
-            compiler.shutdown();
+            if (compiler != null) {
+                compiler.shutdown();
+            }
             compiler = null;
         }
     }
