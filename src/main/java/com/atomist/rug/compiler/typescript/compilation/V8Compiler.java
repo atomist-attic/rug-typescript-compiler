@@ -10,18 +10,6 @@ import com.eclipsesource.v8.utils.MemoryManager;
 
 public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
 
-    public static boolean IS_ENABLED;
-
-    static {
-        try {
-            Class.forName("com.eclipsesource.v8.V8");
-            IS_ENABLED = true;
-        }
-        catch (Throwable e) {
-            IS_ENABLED = false;
-        }
-    }
-
     private MemoryManager memoryManager;
 
     @Override
@@ -71,5 +59,20 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
     @Override
     protected void finalize() throws Throwable {
         shutdown();
+    }
+    
+    public static class V8CompilerHelper {
+        
+        public static boolean IS_ENABLED;
+
+        static {
+            try {
+                Class.forName("com.eclipsesource.v8.V8");
+                IS_ENABLED = true;
+            }
+            catch (Throwable e) {
+                IS_ENABLED = false;
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.atomist.rug.compiler.typescript.compilation;
 
 import com.atomist.rug.compiler.typescript.TypeScriptCompilationException;
+import com.atomist.rug.compiler.typescript.compilation.V8Compiler.V8CompilerHelper;
 
 public abstract class CompilerFactory {
     
@@ -9,7 +10,7 @@ public abstract class CompilerFactory {
     
     public static Compiler create() {
         Compiler compiler;
-        if (V8Compiler.IS_ENABLED && !DISABLE_V8) {
+        if (V8CompilerHelper.IS_ENABLED && !DISABLE_V8) {
             compiler = new V8Compiler();
         }
         else if (NashornCompiler.IS_ENABLED && !DISABLE_NASHORN) {
