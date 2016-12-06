@@ -12,7 +12,7 @@ function compile(file, sourceFileLoader) {
 
   var host = {
     getDefaultLibFileName: function() {
-      return "typescript/lib/lib.d.ts";
+      return "typescript/lib/lib.es5.d.ts";
     },
     getCurrentDirectory: function() {
       return '';
