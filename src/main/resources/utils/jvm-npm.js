@@ -118,6 +118,7 @@ module = (typeof module === 'undefined') ? {} : module;
         for (var i = 0; i < roots.length; ++i) {
             var root = roots[i];
             var result = resolveClasspathModule(id, root) ||
+                resolveClasspathDirectory(id, root) ||
                 resolveCoreModule(id, root) ||
                 resolveAsFile(id, root, '.js') ||
                 resolveAsFile(id, root, '.json') ||
@@ -258,6 +259,40 @@ module = (typeof module === 'undefined') ? {} : module;
                 core: true
             };
         }
+    }
+
+    function resolveClasspathDirectory(id, root) {
+        var name = [id, 'package.json'].join('/');
+        var file = sourceFileLoader.sourceFor(name, root);
+        if (file) {
+            try {
+                var package_ = JSON.parse(file.toString());
+                if (package_.main) {
+                    return (resolveAsFile(package_.main, base) ||
+                        resolveAsDirectory(package_.main, base));
+                }
+                // if no package.main exists, look for index.js
+                file = resolveClasspathModule([id, 'index.js'].join('/'), id);
+                if (file) {
+                  return {
+                      path: [id, 'index.js'].join('/'),
+                      core: true
+                  };
+                }
+                else {
+                  file = resolveClasspathModule([id, 'index.d.js'].join('/'), id);
+                  if (file) {
+                    return {
+                        path: [id, 'index.d.js'].join('/'),
+                        core: true
+                    };
+                  }
+                }
+            } catch (ex) {
+                throw new ModuleError('Cannot load JSON file', 'PARSE_ERROR', ex);
+            }
+        }
+        return resolveAsFile('index.js', base);
     }
 
     function normalizeName(fileName, ext) {

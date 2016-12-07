@@ -63,6 +63,9 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
                 SourceFile source = doSourceFor(jsName, baseFilename);
                 if (source != null) {
                     String compiled = compile(jsName);
+                    if (compiled.equals("")) {
+                        compiled = "\"use strict\";";
+                    }
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Successfully compiled typescript {} to \n{}", name, compiled);
                     }
