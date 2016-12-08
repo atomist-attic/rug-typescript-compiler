@@ -23,6 +23,14 @@ public class TypeScriptCompiler implements Compiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeScriptCompiler.class);
 
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
+    private boolean handleCompilerLifecycle = true;
+    
+    public TypeScriptCompiler() {}
+    
+    public TypeScriptCompiler(com.atomist.rug.compiler.typescript.compilation.Compiler compiler) {
+        this.compiler = compiler;
+        this.handleCompilerLifecycle = false;
+    }
 
     @Override
     public ArtifactSource compile(ArtifactSource source) {
@@ -34,7 +42,7 @@ public class TypeScriptCompiler implements Compiler {
             List<FileArtifact> files = filterSourceFiles(source);
 
             // Only init the compiler if there is something to compile
-            if (files.size() > 0 && compiler == null) {
+            if (files.size() > 0 && compiler == null && handleCompilerLifecycle) {
                 initCompiler();
             }
 
@@ -59,7 +67,7 @@ public class TypeScriptCompiler implements Compiler {
             return source.plus(JavaConversions.asScalaBuffer(artifacts));
         }
         finally {
-            if (compiler != null) {
+            if (compiler != null && handleCompilerLifecycle) {
                 compiler.shutdown();
             }
             compiler = null;

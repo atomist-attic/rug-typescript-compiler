@@ -16,6 +16,7 @@ import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 public class TypeScriptCompilerContext {
     
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
+    private TypeScriptCompiler typeScriptCompiler;
 
     public ScriptEngine init() {
         ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
@@ -34,6 +35,10 @@ public class TypeScriptCompilerContext {
 
         safeEval(npmModuleLoader(), engine);
         return engine;
+    }
+    
+    public TypeScriptCompiler compiler() {
+        return typeScriptCompiler;
     }
     
     public void shutdown() {
@@ -62,6 +67,7 @@ public class TypeScriptCompilerContext {
 
     private SourceFileLoader sourceFileLoader(ScriptEngine engine) {
         compiler = CompilerFactory.create();
+        typeScriptCompiler = new TypeScriptCompiler(compiler);
         return new DefaultSourceFileLoader(compiler, engine);
     }
 
