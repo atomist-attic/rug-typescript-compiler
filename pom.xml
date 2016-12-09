@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.atomist</groupId>
 	<artifactId>rug-typescript-compiler</artifactId>
-	<version>0.4.4-SNAPSHOT</version>
+	<version>0.4.5-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>rug-typescript-compiler</name>
 	<description>TypeScript compiler for Atomist Rug</description>
@@ -70,6 +70,9 @@
 						<goals>
 							<goal>install-node-and-npm</goal>
 						</goals>
+						<configuration>
+							<nodeVersion>v6.9.2</nodeVersion>
+						</configuration>
 					</execution>
 					<execution>
 						<id>npm install</id>
@@ -180,6 +183,22 @@
 				<os>
 					<family>windows</family>
 					<arch>x86_64</arch>
+				</os>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.eclipsesource.j2v8</groupId>
+					<artifactId>j2v8_win32_x86_64</artifactId>
+					<version>4.6.0</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>windows_amd64</id>
+			<activation>
+				<os>
+					<family>dos</family>
+					<arch>amd64</arch>
 				</os>
 			</activation>
 			<dependencies>
