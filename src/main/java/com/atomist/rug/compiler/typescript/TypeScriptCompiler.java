@@ -24,9 +24,10 @@ public class TypeScriptCompiler implements Compiler {
 
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
     private boolean handleCompilerLifecycle = true;
-    
-    public TypeScriptCompiler() {}
-    
+
+    public TypeScriptCompiler() {
+    }
+
     public TypeScriptCompiler(com.atomist.rug.compiler.typescript.compilation.Compiler compiler) {
         this.compiler = compiler;
         handleCompilerLifecycle = false;
@@ -38,40 +39,47 @@ public class TypeScriptCompiler implements Compiler {
             DefaultSourceFileLoader defaultLoader = new DefaultSourceFileLoader(compiler);
             SourceFileLoader artifactSourceLoader = new ArtifactSourceSourceFileLoader(source,
                     defaultLoader);
-
+            
+            // Get source files to compile
             List<FileArtifact> files = filterSourceFiles(source);
 
-            // Only init the compiler if there is something to compile
-            if (files.size() > 0 && compiler == null && handleCompilerLifecycle) {
+            if (files.size() > 0) {
+                // Init the compiler
                 initCompiler();
+                
+                // Actually compile the files now
+                return compileFiles(source, artifactSourceLoader, files);
             }
-
-            List<FileArtifact> compiledFiles = files.stream().map(f -> {
-                try {
-                    String compiled = compiler.compile(f.path(), artifactSourceLoader);
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Successfully compiled typescript {} to \n{}", f.path(),
-                                compiled);
-                    }
-                    return new StringFileArtifact(f.name().replace(".ts", ".js"), f.pathElements(),
-                            compiled);
-                }
-                catch (Exception e) {
-                    handleException(e);
-                }
-                return null;
-            }).collect(toList());
-
-            List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull)
-                    .collect(toList());
-            return source.plus(JavaConverters.asScalaBuffer(artifacts));
+            else {
+                return source;
+            }
         }
         finally {
-            if (compiler != null && handleCompilerLifecycle) {
-                compiler.shutdown();
-            }
-            compiler = null;
+            shutDownCompiler();
         }
+    }
+
+    private ArtifactSource compileFiles(ArtifactSource source,
+            SourceFileLoader artifactSourceLoader, List<FileArtifact> files) {
+        List<FileArtifact> compiledFiles = files.stream().map(f -> {
+            try {
+                String compiled = compiler.compile(f.path(), artifactSourceLoader);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Successfully compiled typescript {} to \n{}", f.path(),
+                            compiled);
+                }
+                return new StringFileArtifact(f.name().replace(".ts", ".js"),
+                        f.pathElements(), compiled);
+            }
+            catch (Exception e) {
+                handleException(e);
+            }
+            return null;
+        }).collect(toList());
+
+        List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull)
+                .collect(toList());
+        return source.plus(JavaConverters.asScalaBuffer(artifacts));
     }
 
     @Override
@@ -97,8 +105,17 @@ public class TypeScriptCompiler implements Compiler {
             throw new TypeScriptCompilationException("Compilation failed", e);
         }
     }
+    
+    private synchronized void shutDownCompiler() {
+        if (compiler != null && handleCompilerLifecycle) {
+            compiler.shutdown();
+            compiler = null;
+        }
+    }
 
     private synchronized void initCompiler() {
-        compiler = CompilerFactory.create();
+        if (compiler == null && handleCompilerLifecycle) {
+            compiler = CompilerFactory.create();
+        }
     }
 }

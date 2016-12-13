@@ -34,7 +34,7 @@
         <dependency>
             <groupId>com.atomist</groupId>
             <artifactId>rug-compiler</artifactId>
-            <version>0.3.0</version>
+            <version>0.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -79,7 +79,7 @@
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>install @atomist/rug@0.1.2</arguments>
+                            <arguments>install @atomist/rug@0.5.4</arguments>
                         </configuration>
                     </execution>
                 </executions>

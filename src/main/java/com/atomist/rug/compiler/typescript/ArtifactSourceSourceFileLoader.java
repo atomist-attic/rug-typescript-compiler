@@ -9,9 +9,9 @@ class ArtifactSourceSourceFileLoader implements SourceFileLoader {
     private final ArtifactSource source;
     private final SourceFileLoader sourceFileLoader;
 
-    public ArtifactSourceSourceFileLoader(ArtifactSource source, SourceFileLoader sourceFactory) {
+    public ArtifactSourceSourceFileLoader(ArtifactSource source, SourceFileLoader sourceFileLoader) {
         this.source = source;
-        sourceFileLoader = sourceFactory;
+        this.sourceFileLoader = sourceFileLoader;
     }
 
     @Override

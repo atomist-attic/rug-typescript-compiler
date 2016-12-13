@@ -3,8 +3,6 @@ package com.atomist.rug.compiler.typescript;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -27,13 +25,18 @@ public class TypeScriptCompilerContext {
     }
 
     public ScriptEngine init(ScriptEngine engine) {
+        // Needed for compilation
         safeEval("exports = {}", engine);
-
-        Bindings bindings = engine.createBindings();
-        bindings.put("sourceFileLoader", sourceFileLoader(engine));
-        engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-
+        
+        // atomist might not be available during compilation
+        if (engine.get("atomist") == null) {
+            safeEval("atomist = {}", engine);
+        }
+        
+        // Set up npm module loading
+        engine.put("sourceFileLoader", sourceFileLoader(engine));
         safeEval(npmModuleLoader(), engine);
+        
         return engine;
     }
     
