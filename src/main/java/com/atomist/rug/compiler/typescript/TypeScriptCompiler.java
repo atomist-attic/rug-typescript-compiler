@@ -16,7 +16,7 @@ import com.atomist.source.ArtifactSource;
 import com.atomist.source.FileArtifact;
 import com.atomist.source.StringFileArtifact;
 
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
 
 public class TypeScriptCompiler implements Compiler {
 
@@ -29,7 +29,7 @@ public class TypeScriptCompiler implements Compiler {
     
     public TypeScriptCompiler(com.atomist.rug.compiler.typescript.compilation.Compiler compiler) {
         this.compiler = compiler;
-        this.handleCompilerLifecycle = false;
+        handleCompilerLifecycle = false;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class TypeScriptCompiler implements Compiler {
 
             List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull)
                     .collect(toList());
-            return source.plus(JavaConversions.asScalaBuffer(artifacts));
+            return source.plus(JavaConverters.asScalaBuffer(artifacts));
         }
         finally {
             if (compiler != null && handleCompilerLifecycle) {

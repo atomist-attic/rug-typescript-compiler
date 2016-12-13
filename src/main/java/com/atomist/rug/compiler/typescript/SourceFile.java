@@ -20,7 +20,7 @@ public class SourceFile {
     private final URI uri;
 
     public SourceFile(URI uri, String contents) {
-        this.filename = basename(uri.toString());
+        filename = basename(uri.toString());
         this.uri = uri;
         this.contents = contents;
     }
