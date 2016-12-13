@@ -8,7 +8,8 @@ function compile(file, sourceFileLoader) {
   opts.experimentalDecorators = true;
   opts.emitDecoratorMetadata = true;
   opts.target = 1; // 0 = ES3
-  //opts.inlineSourceMap = true;
+  opts.inlineSourceMap = true;
+  opts.removeComments = true;
 
   var host = {
     getDefaultLibFileName: function() {
