@@ -79,7 +79,7 @@ public class TypeScriptCompiler implements Compiler {
 
         List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull)
                 .collect(toList());
-        return source.plus(JavaConverters.asScalaBuffer(artifacts));
+        return source.plus(JavaConverters.asScalaBufferConverter(artifacts).asScala());
     }
 
     @Override

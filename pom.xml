@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.atomist</groupId>
     <artifactId>rug-typescript-compiler</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.5.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>rug-typescript-compiler</name>
     <description>TypeScript compiler for Atomist Rug</description>
@@ -24,7 +24,7 @@
             <dependency>
                 <groupId>com.atomist</groupId>
                 <artifactId>atomist-bom</artifactId>
-                <version>0.3.0</version>
+                <version>0.4.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>com.atomist</groupId>
             <artifactId>rug-compiler</artifactId>
-            <version>0.3.1</version>
+            <version>0.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
