@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atomist.rug.compiler.typescript.compilation.Compiler;
+import com.atomist.source.FileArtifact;
 
 public class DefaultSourceFileLoader implements SourceFileLoader {
 
@@ -228,5 +229,13 @@ public class DefaultSourceFileLoader implements SourceFileLoader {
 
     private String compile(String jsName) {
         return compiler.compile(jsName, this);
+    }
+
+    public void push(FileArtifact file) {
+        currentContext.push(SourceFile.createFrom(file.inputStream(), URI.create(file.path())));
+    }
+
+    public void pop() {
+        currentContext.pop();
     }
 }

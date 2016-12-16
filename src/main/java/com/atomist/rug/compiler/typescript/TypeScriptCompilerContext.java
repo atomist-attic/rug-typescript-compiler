@@ -10,11 +10,13 @@ import javax.script.ScriptException;
 import org.apache.commons.io.IOUtils;
 
 import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
+import com.atomist.source.FileArtifact;
 
 public class TypeScriptCompilerContext {
     
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
     private TypeScriptCompiler typeScriptCompiler;
+    private DefaultSourceFileLoader sourceFileLoader;
 
     public ScriptEngine init() {
         ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
@@ -38,6 +40,16 @@ public class TypeScriptCompilerContext {
         safeEval(npmModuleLoader(), engine);
         
         return engine;
+    }
+    
+    public void eval(FileArtifact file, ScriptEngine engine) throws ScriptException {
+        try {
+            sourceFileLoader.push(file);
+            engine.eval(file.content());
+        }
+        finally {
+            sourceFileLoader.pop();
+        }
     }
     
     public TypeScriptCompiler compiler() {
@@ -71,7 +83,8 @@ public class TypeScriptCompilerContext {
     private SourceFileLoader sourceFileLoader(ScriptEngine engine) {
         compiler = CompilerFactory.create();
         typeScriptCompiler = new TypeScriptCompiler(compiler);
-        return new DefaultSourceFileLoader(compiler, engine);
+        sourceFileLoader = new DefaultSourceFileLoader(compiler, engine);
+        return sourceFileLoader;
     }
 
 }
