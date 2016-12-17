@@ -1,44 +1,35 @@
 import {Project} from '@atomist/rug/model/Core'
 import {ProjectEditor} from '@atomist/rug/operations/ProjectEditor'
-import {Parameters, ParametersSupport} from '@atomist/rug/operations/Parameters'
-import {PathExpression, PathExpressionEngine, Match} from '@atomist/rug/tree/PathExpression'
+import {PathExpression} from '@atomist/rug/tree/PathExpression'
+import {PathExpressionEngine} from '@atomist/rug/tree/PathExpression'
+import {Match} from '@atomist/rug/tree/PathExpression'
 import {File} from '@atomist/rug/model/Core'
-import {Status, Result} from '@atomist/rug/operations/Result'
-import {parameter, inject, parameters, tag, editor} from '@atomist/rug/support/Metadata'
+import {Result,Status, Parameter} from '@atomist/rug/operations/RugOperation'
 
-abstract class JavaInfo extends ParametersSupport {
+class ConstructedEditor implements ProjectEditor {
+    name: string = "Constructed"
+    description: string = "A nice little editor"
+    tags: string[] = ["java", "maven"]
 
-  @parameter({description: "The Java package name", displayName: "Java Package", pattern: ".*", maxLength: 100})
-  packageName: string = null
+    parameters: Parameter[] = [{name: "packageName", description: "The Java package name", displayName: "Java Package", pattern: "^.*$", maxLength: 100}]
+    edit(project: Project, {packageName } : { packageName: string}) {
 
-}
+      let eng: PathExpressionEngine = project.context().pathExpressionEngine();
 
-@editor("A nice little editor")
-@tag("java")
-@tag("maven")
-class ConstructedEditor implements ProjectEditor<Parameters> {
+      var t: string = `param=${packageName},filecount=${project.fileCount()}`
 
-    private eng: PathExpressionEngine;
-
-    constructor(@inject("PathExpressionEngine") _eng: PathExpressionEngine ){
-      this.eng = _eng;
-    }
-    edit(project: Project, @parameters("JavaInfo") ji: JavaInfo) {
-
-      let pe = new PathExpression<Project,File>(`/*:file[name='pom.xml']`)
-      //console.log(pe.expression);
-      let m: Match<Project,File> = this.eng.evaluate(project, pe)
-
-      var t: string = `param=${ji.packageName},filecount=${m.root().fileCount()}`
-      for (let n of m.matches())
+      eng.with<File>(project, "->file", n => {
         t += `Matched file=${n.path()}`;
+        n.append("randomness")
+      })
 
         var s: string = ""
 
         project.addFile("src/from/typescript", "Anders Hjelsberg is God");
         for (let f of project.files())
             s = s + `File [${f.path()}] containing [${f.content()}]\n`
-        return new Result(Status.Success, `${t}\n\nEdited Project containing ${project.fileCount()} files: \n${s}`);
+        return new Result(Status.Success,
+        `${t}\n\nEdited Project containing ${project.fileCount()} files: \n${s}`)
     }
   }
- 
+  var editor = new ConstructedEditor()
