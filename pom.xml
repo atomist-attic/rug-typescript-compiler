@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.atomist</groupId>
     <artifactId>rug-typescript-compiler</artifactId>
-    <version>0.5.3-SNAPSHOT</version>
+    <version>0.5.4-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>rug-typescript-compiler</name>
     <description>TypeScript compiler for Atomist Rug</description>
@@ -79,13 +79,14 @@
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>install @atomist/rug@0.5.4</arguments>
+                            <arguments>install @atomist/rug@0.7.0</arguments>
                         </configuration>
+                        <phase>process-test-resources</phase>
                     </execution>
                 </executions>
                 <configuration>
                     <installDirectory>target/node</installDirectory>
-                    <workingDirectory>target/classes</workingDirectory>
+                    <workingDirectory>target/test-classes</workingDirectory>
                     <nodeVersion>v4.6.0</nodeVersion>
                     <npmVersion>2.15.9</npmVersion>
                 </configuration>
