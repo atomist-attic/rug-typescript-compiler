@@ -1,0 +1,24 @@
+{
+  "name": "@atomist-rugs/licensing-editors",
+  "version": "0.2.0",
+  "description": "Manage licenses and copyright notices",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atomist/licensing-editors.git"
+  },
+  "keywords": [
+    "Atomist",
+    "Rug",
+    "Licensing",
+    "Copyright"
+  ],
+  "author": "Atomist, Inc",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/atomist/licensing-editors/issues"
+  },
+  "homepage": "https://github.com/atomist/licensing-editors#readme",
+  "dependencies": {
+    "@atomist/rug": "0.7.0"
+  }
+}

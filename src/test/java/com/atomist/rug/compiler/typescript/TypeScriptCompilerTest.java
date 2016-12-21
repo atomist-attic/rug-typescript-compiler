@@ -1,19 +1,5 @@
 package com.atomist.rug.compiler.typescript;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-
-import org.junit.Test;
-
 import com.atomist.rug.compiler.CompilerRegistry;
 import com.atomist.rug.compiler.ServiceLoaderCompilerRegistry$;
 import com.atomist.source.ArtifactSource;
@@ -22,9 +8,18 @@ import com.atomist.source.FileArtifact;
 import com.atomist.source.StringFileArtifact;
 import com.atomist.source.file.FileSystemArtifactSource;
 import com.atomist.source.file.SimpleFileSystemArtifactSourceIdentifier;
-
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.junit.Test;
 import scala.collection.JavaConversions;
+
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+
+import static org.junit.Assert.*;
 
 @SuppressWarnings("restriction")
 public class TypeScriptCompilerTest {
@@ -102,6 +97,20 @@ public class TypeScriptCompilerTest {
         return engine;
     }
 
+
+    @Test
+    public void testCompileAndRunWithModules() throws Exception{
+        ArtifactSource source = new FileSystemArtifactSource(
+                new SimpleFileSystemArtifactSourceIdentifier(new File("./src/test/resources/licensing-editors")));
+
+        TypeScriptCompiler compiler = new TypeScriptCompiler();
+        assertTrue(compiler.supports(source));
+        ArtifactSource result = compiler.compile(source);
+        String complexJsContents = result.findFile(".atomist/editors/AddLicenseFile.js").get().content();
+        ScriptEngine engine = new TypeScriptCompilerContext().init(result.underPath(".atomist"));
+        engine.eval(complexJsContents);
+        assertNotNull(engine.get("editor")); //means we were able to require the atomist nodoe module from the artifact source
+    }
     @Test
     public void testCompileThroughCompilerFactory() {
         ArtifactSource source = new EmptyArtifactSource("test");

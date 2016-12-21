@@ -53,6 +53,11 @@
             <artifactId>logback-access</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.coveo</groupId>
+            <artifactId>nashorn-commonjs-modules</artifactId>
+            <version>1.0.5</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
