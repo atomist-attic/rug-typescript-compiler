@@ -57,6 +57,21 @@ public class TypeScriptCompiler implements Compiler {
         }
     }
 
+    @Override
+    public String extension() {
+        return "ts";
+    }
+
+    @Override
+    public String name() {
+        return "TypeScript";
+    }
+
+    @Override
+    public boolean supports(ArtifactSource source) {
+        return !filterSourceFiles(source).isEmpty();
+    }
+
     private ArtifactSource compileFiles(ArtifactSource source,
             ScriptLoader artifactSourceLoader, List<FileArtifact> files) {
         List<FileArtifact> compiledFiles = files.stream().map(f -> {
@@ -79,19 +94,7 @@ public class TypeScriptCompiler implements Compiler {
                 .collect(toList());
         return source.plus(JavaConverters.asScalaBufferConverter(artifacts).asScala());
     }
-
-    @Override
-    public boolean supports(ArtifactSource source) {
-        return !filterSourceFiles(source).isEmpty();
-    }
-
-    protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
-        return asJavaCollection(source.allFiles()).stream()
-                .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts")
-                        && source.findFile(f.path().replace(".ts", ".js")).isEmpty())
-                .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
-    }
-
+    
     private void handleException(Exception e) {
         String msg = e.getMessage();
         if (msg != null && msg.contains("<#>")) {
@@ -103,7 +106,13 @@ public class TypeScriptCompiler implements Compiler {
             throw new TypeScriptCompilationException("Compilation failed", e);
         }
     }
-    
+
+    private synchronized void initCompiler() {
+        if (compiler == null && handleCompilerLifecycle) {
+            compiler = CompilerFactory.create();
+        }
+    }
+
     private synchronized void shutDownCompiler() {
         if (compiler != null && handleCompilerLifecycle) {
             compiler.shutdown();
@@ -111,9 +120,10 @@ public class TypeScriptCompiler implements Compiler {
         }
     }
 
-    private synchronized void initCompiler() {
-        if (compiler == null && handleCompilerLifecycle) {
-            compiler = CompilerFactory.create();
-        }
+    protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
+        return asJavaCollection(source.allFiles()).stream()
+                .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts")
+                        && source.findFile(f.path().replace(".ts", ".js")).isEmpty())
+                .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
     }
 }
