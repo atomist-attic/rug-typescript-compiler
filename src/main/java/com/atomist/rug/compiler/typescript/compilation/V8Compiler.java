@@ -1,6 +1,6 @@
 package com.atomist.rug.compiler.typescript.compilation;
 
-import com.atomist.rug.compiler.typescript.SourceFileLoader;
+import com.atomist.rug.compiler.typescript.ScriptLoader;
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
@@ -28,11 +28,11 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
     }
 
     @Override
-    protected String doCompile(V8 engine, String file, SourceFileLoader sourceFileLoader) {
+    protected String doCompile(V8 engine, String file, ScriptLoader sourceFileLoader) {
         JavaCallback sourceFor = (V8Object receiver, V8Array parameters) -> {
             String fileName = parameters.get(0).toString();
             String baseFilename = parameters.get(1).toString();
-            return sourceFileLoader.sourceFor(fileName, baseFilename).contents();
+            return sourceFileLoader.sourceFor(fileName, baseFilename);
         };
 
         V8Object engineSourceFileLoader = new V8Object(engine);

@@ -1,9 +1,12 @@
 package com.atomist.rug.compiler.typescript.compilation;
 
+import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 
-import com.atomist.rug.compiler.typescript.SourceFile;
-import com.atomist.rug.compiler.typescript.SourceFileLoader;
+import org.apache.commons.io.IOUtils;
+
+import com.atomist.rug.compiler.typescript.ScriptLoader;
 import com.atomist.rug.compiler.typescript.TypeScriptException;
 
 public abstract class AbstractCompiler<T> implements Compiler {
@@ -18,7 +21,12 @@ public abstract class AbstractCompiler<T> implements Compiler {
         if (url == null) {
             throw new TypeScriptException(String.format("Error loading %s from classpath", name));
         }
-        evalScript(engine, SourceFile.createFrom(url).contents());
+        try {
+            evalScript(engine, IOUtils.toString(url, Charset.defaultCharset()));
+        }
+        catch (IOException e) {
+            throw new TypeScriptException(String.format("Error loading %s from classpath", name));
+        }
     }
 
     @Override
@@ -32,7 +40,7 @@ public abstract class AbstractCompiler<T> implements Compiler {
     }
 
     @Override
-    public String compile(String filename, SourceFileLoader sourceFileLoader) {
+    public String compile(String filename, ScriptLoader sourceFileLoader) {
         return doCompile(engine, filename, sourceFileLoader);
     }
 
@@ -48,7 +56,7 @@ public abstract class AbstractCompiler<T> implements Compiler {
 
     protected abstract void evalScript(T engine, String src);
 
-    protected abstract String doCompile(T engine, String file, SourceFileLoader sourceFileLoader);
+    protected abstract String doCompile(T engine, String file, ScriptLoader sourceFileLoader);
 
     protected void doShutdown(T engine) {
     }

@@ -1,5 +1,20 @@
 package com.atomist.rug.compiler.typescript;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
+import org.junit.Test;
+
 import com.atomist.rug.compiler.CompilerRegistry;
 import com.atomist.rug.compiler.ServiceLoaderCompilerRegistry$;
 import com.atomist.source.ArtifactSource;
@@ -8,18 +23,9 @@ import com.atomist.source.FileArtifact;
 import com.atomist.source.StringFileArtifact;
 import com.atomist.source.file.FileSystemArtifactSource;
 import com.atomist.source.file.SimpleFileSystemArtifactSourceIdentifier;
+
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import org.junit.Test;
 import scala.collection.JavaConversions;
-
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-
-import static org.junit.Assert.*;
 
 @SuppressWarnings("restriction")
 public class TypeScriptCompilerTest {
@@ -70,34 +76,21 @@ public class TypeScriptCompilerTest {
         assertTrue(compiler.supports(source));
         ArtifactSource result = compiler.compile(source);
         
-        String complexJsContents = result.findFile(".atomist/editors/MyEditor.js").get().content();
-        System.out.println(complexJsContents);
-        
         String jsContents = result.findFile(".atomist/editors/SimpleEditor.js").get().content();
         
-        ScriptEngine engine = prepareScriptEngine(jsContents);
+        ScriptEngine engine = new TypeScriptCompilerContext().init(result.underPath(".atomist"));
+        engine.eval(jsContents);
         engine.eval("var editor = new SimpleEditor();");
         ScriptObjectMirror editor = (ScriptObjectMirror) engine.getContext()
                 .getBindings(ScriptContext.ENGINE_SCOPE).get("editor");
-//        ProjectMutableView pmv = new ProjectMutableView(new EmptyArtifactSource(""), source);
-//        String resultString = (String) editor.callMember("edit", pmv, new Object());
-//        assertTrue(resultString.contains("" + (JavaConversions.asJavaCollection(source.allFiles()).size() + 1)));
-        
         jsContents = result.findFile(".atomist/editors/ConstructedEditor.js").get().content();
-        engine = prepareScriptEngine(jsContents);
+        engine.eval(jsContents);
         engine.eval("var editor = new ConstructedEditor();");
         editor = (ScriptObjectMirror) engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE)
                 .get("editor");
         
     }
     
-    public ScriptEngine prepareScriptEngine(String contents) throws ScriptException {
-        ScriptEngine engine = new TypeScriptCompilerContext().init();
-        engine.eval(contents);
-        return engine;
-    }
-
-
     @Test
     public void testCompileAndRunWithModules() throws Exception{
         ArtifactSource source = new FileSystemArtifactSource(

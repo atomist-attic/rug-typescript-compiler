@@ -36,9 +36,7 @@ public class TypeScriptCompiler implements Compiler {
     @Override
     public ArtifactSource compile(ArtifactSource source) {
         try {
-            DefaultSourceFileLoader defaultLoader = new DefaultSourceFileLoader(compiler);
-            SourceFileLoader artifactSourceLoader = new ArtifactSourceSourceFileLoader(source,
-                    defaultLoader);
+            ScriptLoader artifactSourceLoader = new ArtifactSourceScriptLoader(source);
             
             // Get source files to compile
             List<FileArtifact> files = filterSourceFiles(source);
@@ -60,7 +58,7 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     private ArtifactSource compileFiles(ArtifactSource source,
-            SourceFileLoader artifactSourceLoader, List<FileArtifact> files) {
+            ScriptLoader artifactSourceLoader, List<FileArtifact> files) {
         List<FileArtifact> compiledFiles = files.stream().map(f -> {
             try {
                 String compiled = compiler.compile(f.path(), artifactSourceLoader);

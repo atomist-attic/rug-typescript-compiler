@@ -7,7 +7,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import com.atomist.rug.compiler.typescript.SourceFileLoader;
+import com.atomist.rug.compiler.typescript.ScriptLoader;
 import com.atomist.rug.compiler.typescript.TypeScriptException;
 
 public class NashornCompiler extends AbstractCompiler<ScriptEngine> implements Compiler {
@@ -41,7 +41,7 @@ public class NashornCompiler extends AbstractCompiler<ScriptEngine> implements C
 
     @Override
     protected String doCompile(ScriptEngine engine, String file,
-            SourceFileLoader sourceFileLoader) {
+            ScriptLoader sourceFileLoader) {
         try {
             return (String) ((Invocable) engine).invokeFunction("compile", file, sourceFileLoader);
         }
