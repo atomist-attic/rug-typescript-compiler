@@ -3,6 +3,7 @@ package com.atomist.rug.compiler.typescript;
 import static java.util.stream.Collectors.toList;
 import static scala.collection.JavaConversions.asJavaCollection;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,6 +18,7 @@ import com.atomist.source.FileArtifact;
 import com.atomist.source.StringFileArtifact;
 
 import scala.collection.JavaConverters;
+import scala.collection.Seq;
 
 public class TypeScriptCompiler implements Compiler {
 
@@ -58,13 +60,18 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     @Override
-    public String extension() {
-        return "ts";
+    public Seq<String> extensions() {
+        return JavaConverters.asScalaBufferConverter(Collections.singletonList("ts")).asScala();
     }
 
     @Override
     public String name() {
-        return "TypeScript";
+        return "TypeScript Compiler";
+    }
+    
+    @Override
+    public int order() {
+        return 0;
     }
 
     @Override
@@ -126,4 +133,5 @@ public class TypeScriptCompiler implements Compiler {
                         && source.findFile(f.path().replace(".ts", ".js")).isEmpty())
                 .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
     }
+
 }
