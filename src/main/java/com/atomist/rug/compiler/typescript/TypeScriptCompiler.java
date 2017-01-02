@@ -92,7 +92,7 @@ public class TypeScriptCompiler implements Compiler {
                         f.pathElements(), compiled);
             }
             catch (Exception e) {
-                handleException(e);
+                handleException(e, source);
             }
             return null;
         }).collect(toList());
@@ -102,12 +102,12 @@ public class TypeScriptCompiler implements Compiler {
         return source.plus(JavaConverters.asScalaBufferConverter(artifacts).asScala());
     }
     
-    private void handleException(Exception e) {
+    private void handleException(Exception e, ArtifactSource source) {
         String msg = e.getMessage();
         if (msg != null && msg.contains("<#>")) {
             int start = msg.indexOf("<#>") + 3;
             int end = msg.lastIndexOf("<#>");
-            throw new TypeScriptCompilationException(msg.substring(start, end).trim());
+            throw new TypeScriptDetailedCompilationException(msg.substring(start, end).trim(), source);
         }
         else {
             throw new TypeScriptCompilationException("Compilation failed", e);

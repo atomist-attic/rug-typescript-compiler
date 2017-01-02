@@ -35,7 +35,8 @@ public class TypeScriptCompilerTest {
             + "        return \"yeah\"\n" + "    }\n" + "}\n" + "";
 
     private String brokenEditorTS = "class SimpleEditor  {\n" + "\n" + "    edit() {\n"
-            + "        rurn \"yeah\"\n" + "    }\n" + "}\n" + "";
+            + "        let bla = new Test();\n"
+            + "        return \"yeah\"\n" + "    }\n" + "}\n" + "";
 
     @Test
     public void testBrokenCompile() {
@@ -51,7 +52,10 @@ public class TypeScriptCompilerTest {
             fail();
         }
         catch (TypeScriptCompilationException e) {
-            assertEquals(".atomist/editors/MyEditor.ts(4,14): error TS1005: ';' expected.",
+            System.err.println(e.getMessage());
+            assertEquals(".atomist/editors/MyEditor.ts(4,23): error TS2304: Cannot find name 'Test'.\n" + 
+                    "        let bla = new Test();\n" + 
+                    "----------------------^\n",
                     e.getMessage());
         }
     }
