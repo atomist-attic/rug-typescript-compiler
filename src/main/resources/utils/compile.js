@@ -1,4 +1,4 @@
-function compile(file, sourceFileLoader) {
+function compile(file, scriptLoader) {
 
   var output = "";
   var opts = ts.getDefaultCompilerOptions();
@@ -8,10 +8,11 @@ function compile(file, sourceFileLoader) {
   opts.experimentalDecorators = true;
   opts.emitDecoratorMetadata = true;
   opts.target = 1; // 0 = ES3, 1 = ES5
-  opts.inlineSourceMap = true;
+  opts.sourceMap = true;
   opts.noImplicitUseStrict = true;
   opts.removeComments = true;
   opts.jsx = 2;
+  opts.inlineSources = true;
   
   var host = {
     getDefaultLibFileName: function() {
@@ -32,7 +33,7 @@ function compile(file, sourceFileLoader) {
     getSourceFile: function(filename, languageVersion, onError) {
       var body;
       try {
-        var input = sourceFileLoader.sourceFor(filename, file);
+        var input = scriptLoader.sourceFor(filename, file);
         body = input.toString();
       } catch (e) {
         if (onError) {
@@ -43,13 +44,11 @@ function compile(file, sourceFileLoader) {
       return ts.createSourceFile(filename, body, opts.target, '0');
     },
     writeFile: function(filename, data, writeByteOrderMark, onError) {
-    	  if (filename.slice(0, -2) == file.slice(0, -2)) {
-    	     output = data;
-    	  }
+    	  scriptLoader.writeOutput(filename, data);
     },
     fileExists: function(filename) {
       try {
-        sourceFileLoader.sourceFor(filename, file);
+        scriptLoader.sourceFor(filename, file);
       } catch (e) {
         return false;
       }

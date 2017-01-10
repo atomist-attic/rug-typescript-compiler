@@ -40,10 +40,10 @@ public class NashornCompiler extends AbstractCompiler<ScriptEngine> implements C
     }
 
     @Override
-    protected String doCompile(ScriptEngine engine, String file,
-            ScriptLoader sourceFileLoader) {
+    protected void doCompile(ScriptEngine engine, String file,
+            ScriptLoader scriptLoader) {
         try {
-            return (String) ((Invocable) engine).invokeFunction("compile", file, sourceFileLoader);
+            ((Invocable) engine).invokeFunction("compile", file, scriptLoader);
         }
         catch (NoSuchMethodException e) {
             throw new TypeScriptException(e.getMessage(), e);
