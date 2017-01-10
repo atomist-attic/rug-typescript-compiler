@@ -7,10 +7,12 @@ function compile(file, sourceFileLoader) {
   opts.module = 1; // 1 = CommonJS
   opts.experimentalDecorators = true;
   opts.emitDecoratorMetadata = true;
-  opts.target = 1; // 0 = ES3
+  opts.target = 1; // 0 = ES3, 1 = ES5
   opts.inlineSourceMap = true;
+  opts.noImplicitUseStrict = true;
   opts.removeComments = true;
-
+  opts.jsx = 2;
+  
   var host = {
     getDefaultLibFileName: function() {
       return "typescript/lib/lib.es5.d.ts";
@@ -41,7 +43,9 @@ function compile(file, sourceFileLoader) {
       return ts.createSourceFile(filename, body, opts.target, '0');
     },
     writeFile: function(filename, data, writeByteOrderMark, onError) {
-      output += data;
+    	  if (filename.slice(0, -2) == file.slice(0, -2)) {
+    	     output = data;
+    	  }
     },
     fileExists: function(filename) {
       try {

@@ -18,6 +18,8 @@ import { Project, File, Yml } from '@atomist/rug/model/Core'
 import { ProjectEditor } from '@atomist/rug/operations/ProjectEditor'
 import { Result, Status, Parameter} from '@atomist/rug/operations/RugOperation'
 
+import { Foo } from './Foo';
+
 let params: Parameter[] = [
         {required: true,
           description: "the name of the license to add to project",
@@ -41,7 +43,7 @@ let editor: ProjectEditor = {
     description: "Add a license fiel to a project",
     parameters: params,
     edit(project: Project, {license_name} : {license_name: string}) {
-
+		let foo: Foo = new Foo()
         let licenseFileName = ".atomist/templates/" + license_name + ".yml"
         let licenseFile = project.backingArchiveProject().findFile(licenseFileName)
         if (licenseFile == null) {
