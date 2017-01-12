@@ -13,13 +13,18 @@ function compile(file, scriptLoader) {
   opts.removeComments = true;
   opts.jsx = 2;
   opts.inlineSources = true;
-  
+  opts.moduleResolution = 2; //2 = nodejs, 1 = classic (i.e. doesn't work)
+  //opts.traceResolution = true;
+
   var host = {
     getDefaultLibFileName: function() {
       return "typescript/lib/lib.es5.d.ts";
     },
     getCurrentDirectory: function() {
       return '';
+    },
+    trace: function(str){
+       _println(str);
     },
     useCaseSensitiveFileNames: function() {
       return true;
@@ -29,6 +34,9 @@ function compile(file, scriptLoader) {
     },
     getNewLine: function() {
       return _newline;
+    },
+    readFile: function (fileName) {
+        return scriptLoader.sourceFor(fileName, file).toString();
     },
     getSourceFile: function(filename, languageVersion, onError) {
       var body;
