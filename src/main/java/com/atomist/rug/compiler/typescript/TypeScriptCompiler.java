@@ -5,6 +5,7 @@ import static scala.collection.JavaConversions.asJavaCollection;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +15,6 @@ import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.Deltas;
 import com.atomist.source.FileArtifact;
-
-import scala.collection.JavaConverters;
-import scala.collection.Seq;
 
 public class TypeScriptCompiler implements Compiler {
 
@@ -71,8 +69,8 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     @Override
-    public Seq<String> extensions() {
-        return JavaConverters.asScalaBufferConverter(Collections.singletonList("ts")).asScala();
+    public Set<String> extensions() {
+        return Collections.singleton("ts");
     }
 
     @Override
