@@ -45,10 +45,23 @@ class ArtifactSourceScriptLoader implements ScriptLoader {
 
     @Override
     public void writeOutput(String fileName, String content) {
+        Option<FileArtifact> existing = source.findFile(fileName);
+        if (existing.isEmpty()) {
+            add(fileName, content);
+        }
+        else {
+            String existingContent = existing.get().content();
+            if (!content.equals(existingContent)) {
+                add(fileName, existingContent);
+            }
+        }
+    }
+
+    private void add(String fileName, String content) {
         FileArtifact output = StringFileArtifact.apply(fileName, content);
         this.source = source.plus(output);
     }
-    
+
     public ArtifactSource result() {
         return this.source;
     }
