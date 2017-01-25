@@ -21,15 +21,6 @@ public class TypeScriptCompiler implements Compiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeScriptCompiler.class);
 
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
-    private boolean handleCompilerLifecycle = true;
-
-    public TypeScriptCompiler() {
-    }
-
-    public TypeScriptCompiler(com.atomist.rug.compiler.typescript.compilation.Compiler compiler) {
-        this.compiler = compiler;
-        handleCompilerLifecycle = false;
-    }
 
     @Override
     public ArtifactSource compile(ArtifactSource source) {
@@ -114,13 +105,13 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     private synchronized void initCompiler() {
-        if (compiler == null && handleCompilerLifecycle) {
+        if (compiler == null) {
             compiler = CompilerFactory.create();
         }
     }
 
     private synchronized void shutDownCompiler() {
-        if (compiler != null && handleCompilerLifecycle) {
+        if (compiler != null) {
             compiler.shutdown();
             compiler = null;
         }
@@ -128,8 +119,7 @@ public class TypeScriptCompiler implements Compiler {
 
     protected List<FileArtifact> filterSourceFiles(ArtifactSource source) {
         return asJavaCollection(source.allFiles()).stream()
-                .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts")
-                        && source.findFile(f.path().replace(".ts", ".js")).isEmpty())
+                .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts"))
                 .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
     }
 
