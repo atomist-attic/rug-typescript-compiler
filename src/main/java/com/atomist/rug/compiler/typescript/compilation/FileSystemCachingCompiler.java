@@ -14,12 +14,15 @@ import com.atomist.rug.compiler.typescript.TypeScriptCompilationException;
 
 public class FileSystemCachingCompiler implements Compiler {
 
+    private static final String CACHE_DIR = System.getProperty("TS_COMPILER_CACHE",
+            System.getProperty("user.dir") + File.separator + ".jscache");
+
     private final File cacheDir;
     private final Compiler delegate;
 
     public FileSystemCachingCompiler(Compiler delegate) {
         this.delegate = delegate;
-        this.cacheDir = new File(System.getProperty("user.dir"), ".jscache");
+        this.cacheDir = new File(CACHE_DIR);
         init();
     }
 
