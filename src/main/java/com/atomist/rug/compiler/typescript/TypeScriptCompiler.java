@@ -21,6 +21,16 @@ public class TypeScriptCompiler implements Compiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeScriptCompiler.class);
 
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
+    
+    private boolean externalLifeCycle = false;
+    
+    public TypeScriptCompiler() {
+    }
+    
+    public TypeScriptCompiler(com.atomist.rug.compiler.typescript.compilation.Compiler compiler) {
+        this.externalLifeCycle = true;
+        this.compiler = compiler;
+    }
 
     @Override
     public ArtifactSource compile(ArtifactSource source) {
@@ -33,9 +43,13 @@ public class TypeScriptCompiler implements Compiler {
             if (files.size() > 0) {
                 // Init the compiler
                 initCompiler();
-
+                
+                long start = System.currentTimeMillis();
+                
                 // Actually compile the files now
                 compileFiles(source, scriptLoader, files);
+                
+                System.out.println(">>>>>>>>>>>>>>>>>>>>> " + (System.currentTimeMillis() - start));
 
                 ArtifactSource result = scriptLoader.result();
                 Deltas deltas = result.deltaFrom(source);
@@ -111,7 +125,7 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     private synchronized void shutDownCompiler() {
-        if (compiler != null) {
+        if (compiler != null && !externalLifeCycle) {
             compiler.shutdown();
             compiler = null;
         }
