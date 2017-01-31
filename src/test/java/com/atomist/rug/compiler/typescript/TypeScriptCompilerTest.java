@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import com.atomist.rug.compiler.CompilerRegistry;
 import com.atomist.rug.compiler.ServiceLoaderCompilerRegistry$;
+import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.EmptyArtifactSource;
 import com.atomist.source.FileArtifact;
@@ -45,7 +46,7 @@ public class TypeScriptCompilerTest {
                 Arrays.asList(new String[] { ".atomist", "editors" })), brokenEditorTS);
         source = source.plus(file);
 
-        TypeScriptCompiler compiler = new TypeScriptCompiler();
+        TypeScriptCompiler compiler = new TypeScriptCompiler(CompilerFactory.create());
         assertTrue(compiler.supports(source));
         try {
             ArtifactSource result = compiler.compile(source);
@@ -67,7 +68,7 @@ public class TypeScriptCompilerTest {
                 .asScalaBuffer(Arrays.asList(new String[] { ".atomist", "editors" })), editorTS);
         source = source.plus(file);
 
-        TypeScriptCompiler compiler = new TypeScriptCompiler();
+        TypeScriptCompiler compiler = new TypeScriptCompiler(CompilerFactory.create(true));
         assertTrue(compiler.supports(source));
         ArtifactSource result = compiler.compile(source);
         assertTrue(result.findFile(".atomist/editors/MyEditor.js").isDefined());
@@ -81,7 +82,7 @@ public class TypeScriptCompilerTest {
                 new SimpleFileSystemArtifactSourceIdentifier(
                         new File("./src/test/resources/my-editor")));
 
-        TypeScriptCompiler compiler = new TypeScriptCompiler();
+        TypeScriptCompiler compiler = new TypeScriptCompiler(CompilerFactory.create(true));
         assertTrue(compiler.supports(source));
         ArtifactSource result = compiler.compile(source);
 
@@ -95,7 +96,7 @@ public class TypeScriptCompilerTest {
                 new SimpleFileSystemArtifactSourceIdentifier(
                         new File("./src/test/resources/licensing-editors")));
 
-        TypeScriptCompiler compiler = new TypeScriptCompiler();
+        TypeScriptCompiler compiler = new TypeScriptCompiler(CompilerFactory.create(true));
         assertTrue(compiler.supports(source));
         ArtifactSource result = compiler.compile(source);
         String complexJsContents = result.findFile(".atomist/editors/AddLicenseFile.js").get()

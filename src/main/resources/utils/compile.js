@@ -15,6 +15,7 @@ function compile(file, scriptLoader) {
   opts.inlineSources = true;
   opts.moduleResolution = 2; //2 = nodejs, 1 = classic (i.e. doesn't work)
   //opts.traceResolution = true;
+  //opts.diagnostics = true
 
   var host = {
     getDefaultLibFileName: function() {

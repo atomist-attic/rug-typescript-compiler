@@ -9,6 +9,10 @@ public abstract class CompilerFactory {
     private static final boolean DISABLE_NASHORN = (System.getenv("RUG_DISABLE_NASHORN") != null);
     
     public static Compiler create() {
+        return create(false);
+    }
+    
+    public static Compiler create(boolean cache) {
         Compiler compiler;
         if (V8CompilerHelper.IS_ENABLED && !DISABLE_V8) {
             compiler = new V8Compiler();
@@ -20,7 +24,14 @@ public abstract class CompilerFactory {
             throw new TypeScriptCompilationException("No suitable compiler available");
         }
         compiler.init();
-        return compiler;
+        
+        
+        if (cache) {
+            return new FileSystemCachingCompiler(compiler);
+        }
+        else {
+            return compiler;
+        }
     }
 
 }

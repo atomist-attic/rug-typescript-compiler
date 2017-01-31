@@ -44,13 +44,9 @@ public class TypeScriptCompiler implements Compiler {
                 // Init the compiler
                 initCompiler();
                 
-                long start = System.currentTimeMillis();
-                
                 // Actually compile the files now
                 compileFiles(source, scriptLoader, files);
                 
-                System.out.println(">>>>>>>>>>>>>>>>>>>>> " + (System.currentTimeMillis() - start));
-
                 ArtifactSource result = scriptLoader.result();
                 Deltas deltas = result.deltaFrom(source);
                 if (LOGGER.isDebugEnabled()) {
