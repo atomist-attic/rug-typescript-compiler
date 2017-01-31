@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.atomist.rug.compiler.typescript.ScriptLoader;
@@ -14,7 +15,7 @@ import com.atomist.rug.compiler.typescript.TypeScriptCompilationException;
 
 public class FileSystemCachingCompiler implements Compiler {
 
-    private static final String CACHE_DIR = System.getProperty("TS_COMPILER_CACHE",
+    private static final String CACHE_DIR = System.getProperty("ts.compilerCache",
             System.getProperty("user.dir") + File.separator + ".jscache");
 
     private final File cacheDir;
@@ -35,15 +36,15 @@ public class FileSystemCachingCompiler implements Compiler {
     @Override
     public void compile(String filename, ScriptLoader scriptLoader) {
         String contents = scriptLoader.sourceFor(filename, filename);
-        String hash = String.valueOf(contents.hashCode());
-        File cachedFile = new File(cacheDir, hash);
+        String hashedFile = calculateHash(contents) + ".js";
+        File cachedFile = new File(cacheDir, hashedFile);
         if (cachedFile.exists()) {
             writeFromCache(filename, scriptLoader, cachedFile);
         }
         else {
             delegate.compile(filename, scriptLoader);
             contents = scriptLoader.sourceFor(toJavaScriptName(filename), filename);
-            writeToCache(contents, hash);
+            writeToCache(contents, hashedFile);
         }
     }
 
@@ -56,6 +57,10 @@ public class FileSystemCachingCompiler implements Compiler {
 
     @Override
     public void shutdown() {
+    }
+
+    private String calculateHash(String data) {
+        return DigestUtils.md5Hex(data);
     }
 
     private String toJavaScriptName(String filename) {
