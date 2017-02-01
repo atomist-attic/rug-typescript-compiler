@@ -13,7 +13,7 @@ import org.apache.commons.io.IOUtils;
 import com.atomist.rug.compiler.typescript.ScriptLoader;
 import com.atomist.rug.compiler.typescript.TypeScriptCompilationException;
 
-public class FileSystemCachingCompiler implements Compiler {
+class FileSystemCachingCompiler implements Compiler {
 
     private static final String CACHE_DIR = System.getProperty("ts.compilerCache",
             System.getProperty("user.dir") + File.separator + ".jscache");
@@ -24,27 +24,34 @@ public class FileSystemCachingCompiler implements Compiler {
     public FileSystemCachingCompiler(Compiler delegate) {
         this.delegate = delegate;
         this.cacheDir = new File(CACHE_DIR);
-        init();
     }
 
     public FileSystemCachingCompiler(Compiler delegate, String path) {
         this.delegate = delegate;
         this.cacheDir = new File(path);
-        init();
     }
 
     @Override
-    public void compile(String filename, ScriptLoader scriptLoader) {
-        String contents = scriptLoader.sourceFor(filename, filename);
-        String hashedFile = calculateHash(contents) + ".js";
+    public void compile(String fileName, ScriptLoader scriptLoader) {
+        String jsFileName = toJavaScriptName(fileName);
+        String contents = scriptLoader.sourceFor(fileName, fileName);
+        String hash = calculateHash(contents);
+        String hashedFile = hash + ".js";
+        String hashedMapFile = hash + ".js.map";
+
         File cachedFile = new File(cacheDir, hashedFile);
-        if (cachedFile.exists()) {
-            writeFromCache(filename, scriptLoader, cachedFile);
+        File cachedMapFile = new File(cacheDir, hashedMapFile);
+        
+        if (cachedFile.exists() && cachedMapFile.exists()) {
+            writeFromCache(jsFileName, scriptLoader, cachedFile);
+            writeFromCache(jsFileName + ".map", scriptLoader, cachedMapFile);
         }
         else {
-            delegate.compile(filename, scriptLoader);
-            contents = scriptLoader.sourceFor(toJavaScriptName(filename), filename);
+            delegate.compile(fileName, scriptLoader);
+            contents = scriptLoader.sourceFor(jsFileName, fileName);
             writeToCache(contents, hashedFile);
+            contents = scriptLoader.sourceFor(jsFileName + ".map", fileName);
+            writeToCache(contents, hashedMapFile);
         }
     }
 
@@ -69,7 +76,7 @@ public class FileSystemCachingCompiler implements Compiler {
 
     private void writeFromCache(String filename, ScriptLoader scriptLoader, File cachedFile) {
         try {
-            scriptLoader.writeOutput(toJavaScriptName(filename),
+            scriptLoader.writeOutput(filename,
                     IOUtils.toString(new FileInputStream(cachedFile), StandardCharsets.ISO_8859_1));
         }
         catch (FileNotFoundException e) {

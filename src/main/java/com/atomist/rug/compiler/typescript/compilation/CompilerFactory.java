@@ -27,11 +27,16 @@ public abstract class CompilerFactory {
         
         
         if (cache) {
-            return new FileSystemCachingCompiler(compiler);
+            return cachingCompiler(compiler);
         }
         else {
             return compiler;
         }
     }
 
+    private static Compiler cachingCompiler(Compiler compiler) {
+        Compiler cachingCompiler = new FileSystemCachingCompiler(compiler);
+        cachingCompiler.init();
+        return cachingCompiler;
+    }
 }
