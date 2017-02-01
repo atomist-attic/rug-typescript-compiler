@@ -34,8 +34,14 @@ public abstract class CompilerFactory {
         }
     }
 
-    private static Compiler cachingCompiler(Compiler compiler) {
+    public static Compiler cachingCompiler(Compiler compiler) {
         Compiler cachingCompiler = new FileSystemCachingCompiler(compiler);
+        cachingCompiler.init();
+        return cachingCompiler;
+    }
+    
+    public static Compiler cachingCompiler(Compiler compiler, String path) {
+        Compiler cachingCompiler = new FileSystemCachingCompiler(compiler, path);
         cachingCompiler.init();
         return cachingCompiler;
     }
