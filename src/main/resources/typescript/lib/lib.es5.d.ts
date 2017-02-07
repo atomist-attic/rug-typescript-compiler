@@ -4192,24 +4192,4 @@ interface Date {
       * @param options An object that contains one or more properties that specify comparison options.
       */
     toLocaleTimeString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
-    
-    
 }
-
-// The following has been added to convience as we are adding a console type at runtime too. 
-
-interface Console {
-    debug(message?: string, ...optionalParams: any[]): void;
-    error(message?: any, ...optionalParams: any[]): void;
-    info(message?: any, ...optionalParams: any[]): void;
-    log(message?: any, ...optionalParams: any[]): void;
-    warn(message?: any, ...optionalParams: any[]): void;
-}
-
-declare var Console: {
-    prototype: Console;
-    new(): Console;
-}
-
-declare var console: Console;
-
