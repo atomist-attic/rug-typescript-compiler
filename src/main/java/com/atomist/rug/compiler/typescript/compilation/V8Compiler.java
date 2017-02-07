@@ -28,21 +28,27 @@ public class V8Compiler extends AbstractCompiler<V8> implements Compiler {
     }
 
     @Override
-    protected String doCompile(V8 engine, String file, ScriptLoader sourceFileLoader) {
+    protected void doCompile(V8 engine, String file, ScriptLoader sourceFileLoader) {
         JavaCallback sourceFor = (V8Object receiver, V8Array parameters) -> {
             String fileName = parameters.get(0).toString();
             String baseFilename = parameters.get(1).toString();
             return sourceFileLoader.sourceFor(fileName, baseFilename);
         };
+        JavaVoidCallback writeOutput = (V8Object receiver, V8Array parameters) -> {
+            String fileName = parameters.get(0).toString();
+            String content = parameters.get(1).toString();
+            sourceFileLoader.writeOutput(fileName, content);
+        };
 
-        V8Object engineSourceFileLoader = new V8Object(engine);
-        engineSourceFileLoader.registerJavaMethod(sourceFor, "sourceFor");
+        V8Object scriptLoader = new V8Object(engine);
+        scriptLoader.registerJavaMethod(sourceFor, "sourceFor");
+        scriptLoader.registerJavaMethod(writeOutput, "writeOutput");
 
         V8Array args = new V8Array(engine);
         args.push(file);
-        args.push(engineSourceFileLoader);
+        args.push(scriptLoader);
 
-        return engine.executeStringFunction("compile", args);
+        engine.executeStringFunction("compile", args);
     }
 
     @Override

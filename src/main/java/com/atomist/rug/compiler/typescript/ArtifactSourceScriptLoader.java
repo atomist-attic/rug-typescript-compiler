@@ -8,12 +8,13 @@ import org.apache.commons.io.IOUtils;
 
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.FileArtifact;
+import com.atomist.source.StringFileArtifact;
 
 import scala.Option;
 
 class ArtifactSourceScriptLoader implements ScriptLoader {
 
-    private final ArtifactSource source;
+    private ArtifactSource source;
 
     public ArtifactSourceScriptLoader(ArtifactSource source) {
         this.source = source;
@@ -40,5 +41,28 @@ class ArtifactSourceScriptLoader implements ScriptLoader {
         }
         throw new TypeScriptCompilationException(
                 String.format("Source for %s couldn't be found", filename));
+    }
+
+    @Override
+    public void writeOutput(String fileName, String content) {
+        Option<FileArtifact> existing = source.findFile(fileName);
+        if (existing.isEmpty()) {
+            add(fileName, content);
+        }
+        else {
+            String existingContent = existing.get().content();
+            if (!content.equals(existingContent)) {
+                add(fileName, existingContent);
+            }
+        }
+    }
+
+    private void add(String fileName, String content) {
+        FileArtifact output = StringFileArtifact.apply(fileName, content);
+        this.source = source.plus(output);
+    }
+
+    public ArtifactSource result() {
+        return this.source;
     }
 }

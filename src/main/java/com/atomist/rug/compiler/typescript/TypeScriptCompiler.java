@@ -5,20 +5,16 @@ import static scala.collection.JavaConversions.asJavaCollection;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atomist.rug.compiler.Compiler;
 import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
-import com.atomist.source.Artifact;
 import com.atomist.source.ArtifactSource;
+import com.atomist.source.Deltas;
 import com.atomist.source.FileArtifact;
-import com.atomist.source.StringFileArtifact;
-
-import scala.collection.JavaConverters;
-import scala.collection.Seq;
 
 public class TypeScriptCompiler implements Compiler {
 
@@ -38,17 +34,30 @@ public class TypeScriptCompiler implements Compiler {
     @Override
     public ArtifactSource compile(ArtifactSource source) {
         try {
-            ScriptLoader artifactSourceLoader = new ArtifactSourceScriptLoader(source);
-            
+            ArtifactSourceScriptLoader scriptLoader = new ArtifactSourceScriptLoader(source);
+
             // Get source files to compile
             List<FileArtifact> files = filterSourceFiles(source);
 
             if (files.size() > 0) {
                 // Init the compiler
                 initCompiler();
-                
+
                 // Actually compile the files now
-                return compileFiles(source, artifactSourceLoader, files);
+                compileFiles(source, scriptLoader, files);
+
+                ArtifactSource result = scriptLoader.result();
+                Deltas deltas = result.deltaFrom(source);
+                if (LOGGER.isDebugEnabled()) {
+
+                    asJavaCollection(deltas.deltas()).forEach(d -> {
+                        LOGGER.debug("Successfully compiled TypeScript to file {}, content:\n{}", d.path(),
+                                result.findFile(d.path()).get().content());
+                    });
+
+                }
+
+                return result;
             }
             else {
                 return source;
@@ -60,15 +69,15 @@ public class TypeScriptCompiler implements Compiler {
     }
 
     @Override
-    public Seq<String> extensions() {
-        return JavaConverters.asScalaBufferConverter(Collections.singletonList("ts")).asScala();
+    public Set<String> extensions() {
+        return Collections.singleton("ts");
     }
 
     @Override
     public String name() {
         return "TypeScript Compiler";
     }
-    
+
     @Override
     public int order() {
         return 0;
@@ -79,35 +88,25 @@ public class TypeScriptCompiler implements Compiler {
         return !filterSourceFiles(source).isEmpty();
     }
 
-    private ArtifactSource compileFiles(ArtifactSource source,
-            ScriptLoader artifactSourceLoader, List<FileArtifact> files) {
-        List<FileArtifact> compiledFiles = files.stream().map(f -> {
+    private void compileFiles(ArtifactSource source, ScriptLoader scriptLoader,
+            List<FileArtifact> files) {
+        files.stream().forEach(f -> {
             try {
-                String compiled = compiler.compile(f.path(), artifactSourceLoader);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Successfully compiled typescript {} to \n{}", f.path(),
-                            compiled);
-                }
-                return new StringFileArtifact(f.name().replace(".ts", ".js"),
-                        f.pathElements(), compiled);
+                compiler.compile(f.path(), scriptLoader);
             }
             catch (Exception e) {
                 handleException(e, source);
             }
-            return null;
-        }).collect(toList());
-
-        List<Artifact> artifacts = compiledFiles.stream().filter(Objects::nonNull)
-                .collect(toList());
-        return source.plus(JavaConverters.asScalaBufferConverter(artifacts).asScala());
+        });
     }
-    
+
     private void handleException(Exception e, ArtifactSource source) {
         String msg = e.getMessage();
         if (msg != null && msg.contains("<#>")) {
             int start = msg.indexOf("<#>") + 3;
             int end = msg.lastIndexOf("<#>");
-            throw new TypeScriptDetailedCompilationException(msg.substring(start, end).trim(), source);
+            throw new TypeScriptDetailedCompilationException(msg.substring(start, end).trim(),
+                    source);
         }
         else {
             throw new TypeScriptCompilationException("Compilation failed", e);

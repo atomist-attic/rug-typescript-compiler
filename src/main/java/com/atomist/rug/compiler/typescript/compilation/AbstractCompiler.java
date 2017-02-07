@@ -40,8 +40,8 @@ public abstract class AbstractCompiler<T> implements Compiler {
     }
 
     @Override
-    public String compile(String filename, ScriptLoader sourceFileLoader) {
-        return doCompile(engine, filename, sourceFileLoader);
+    public void compile(String filename, ScriptLoader scriptLoader) {
+        doCompile(engine, filename, scriptLoader);
     }
 
     @Override
@@ -56,7 +56,7 @@ public abstract class AbstractCompiler<T> implements Compiler {
 
     protected abstract void evalScript(T engine, String src);
 
-    protected abstract String doCompile(T engine, String file, ScriptLoader sourceFileLoader);
+    protected abstract void doCompile(T engine, String file, ScriptLoader scriptLoader);
 
     protected void doShutdown(T engine) {
     }

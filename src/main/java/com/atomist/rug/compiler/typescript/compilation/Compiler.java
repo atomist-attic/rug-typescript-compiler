@@ -6,7 +6,7 @@ public interface Compiler {
     
     void init();
 
-    String compile(String filename, ScriptLoader sourceFileLoader);
+    void compile(String filename, ScriptLoader scriptLoader);
     
     void shutdown();
 
