@@ -56,7 +56,7 @@ public class TypeScriptCompilerTest {
             System.err.println(e.getMessage());
             assertEquals(".atomist/editors/MyEditor.ts(4,23): error TS2304: Cannot find name 'Test'.\n" + 
                     "        let bla = new Test();\n" + 
-                    "----------------------^\n",
+                    "                      ^\n",
                     e.getMessage());
         }
     }
