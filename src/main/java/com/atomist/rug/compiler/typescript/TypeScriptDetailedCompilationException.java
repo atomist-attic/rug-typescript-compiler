@@ -30,7 +30,7 @@ public class TypeScriptDetailedCompilationException extends TypeScriptCompilatio
 
                 String[] contentLines = content.split(System.lineSeparator());
 
-                if (contentLines.length >= lineCount) {
+                if (contentLines.length > lineCount) {
                     line = contentLines[lineCount];
                     sb.append(line).append(System.lineSeparator());
                     for (int i = 1; i < Integer.valueOf(colCount); i++) {
