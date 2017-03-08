@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -90,6 +92,12 @@ public class TypeScriptCompilerTest {
         assertTrue(jsContents.contains("var myeditor = new SimpleEditor();"));
     }
 
+    @Test
+    public void testMain() throws Exception {
+        Path dir = Files.createTempDirectory("compiler-test");
+        TypeScriptCompiler.main(new String[] {"src/test/resources/my-editor/.atomist", dir.toString()});
+        assertTrue(new File(dir.toFile(), "editors/MyEditor.ts").exists());
+    }
     @Test
     public void testCompileAndRunWithModules() throws Exception {
         ArtifactSource source = new FileSystemArtifactSource(

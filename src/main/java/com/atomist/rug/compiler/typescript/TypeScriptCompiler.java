@@ -1,20 +1,25 @@
 package com.atomist.rug.compiler.typescript;
 
-import static java.util.stream.Collectors.toList;
-import static scala.collection.JavaConversions.asJavaCollection;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.atomist.rug.compiler.Compiler;
 import com.atomist.rug.compiler.typescript.compilation.CompilerFactory;
 import com.atomist.source.ArtifactSource;
 import com.atomist.source.Deltas;
 import com.atomist.source.FileArtifact;
+import com.atomist.source.file.FileSystemArtifactSource;
+import com.atomist.source.file.FileSystemArtifactSourceIdentifier$;
+import org.apache.commons.compress.utils.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
+import static scala.collection.JavaConversions.asJavaCollection;
 
 public class TypeScriptCompiler implements Compiler {
 
@@ -133,4 +138,37 @@ public class TypeScriptCompiler implements Compiler {
                 .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
     }
 
+    public static void main(String[] args) throws Exception {
+        if(args == null || args.length != 2){
+            System.out.println("Usage: TypeScriptCompiler <input-path> <output-path>");
+            System.exit(1);
+        }
+        File inputFile = new File(args[0]);
+        if(!inputFile.canRead()){
+            throw new IllegalArgumentException("Cannot read input: " + args[0]);
+        }
+
+        File outputFile = new File(args[1]);
+        outputFile.mkdirs();
+
+        FileSystemArtifactSource input = new FileSystemArtifactSource(FileSystemArtifactSourceIdentifier$.MODULE$.apply(inputFile));
+
+
+        ArtifactSource outputMem  = new TypeScriptCompiler().compile(input);
+
+        asJavaCollection(outputMem.allFiles()).forEach(f -> {
+            PrintWriter pw = null;
+            File output = new File(outputFile, f.path());
+            try {
+                output.getParentFile().mkdirs();
+                pw = new PrintWriter(output);
+                pw.write(f.content());
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(("Could not find file: " + output.getAbsolutePath()),e);
+            }finally {
+                IOUtils.closeQuietly(pw);
+            }
+        });
+
+    }
 }
