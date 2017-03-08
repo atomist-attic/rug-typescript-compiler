@@ -1,0 +1,16 @@
+We are currently adding the following fill to typescript/lib/lib.es5.d.ts, so make sure you add it in after you upgrade TS.
+
+interface Console {
+     debug(message?: string, ...optionalParams: any[]): void;
+     error(message?: any, ...optionalParams: any[]): void;
+     info(message?: any, ...optionalParams: any[]): void;
+     log(message?: any, ...optionalParams: any[]): void;
+     warn(message?: any, ...optionalParams: any[]): void;
+ }
+
+ declare var Console: {
+     prototype: Console;
+     new(): Console;
+ }
+
+ declare var console: Console;
