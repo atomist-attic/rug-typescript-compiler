@@ -1,7 +1,6 @@
 package com.atomist.rug.compiler.typescript;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -11,9 +10,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.junit.Test;
@@ -28,10 +24,8 @@ import com.atomist.source.StringFileArtifact;
 import com.atomist.source.file.FileSystemArtifactSource;
 import com.atomist.source.file.SimpleFileSystemArtifactSourceIdentifier;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import scala.collection.JavaConversions;
 
-@SuppressWarnings("restriction")
 public class TypeScriptCompilerTest {
 
     private String editorTS = "class SimpleEditor  {\n" + "\n" + "    edit() {\n"
@@ -44,21 +38,29 @@ public class TypeScriptCompilerTest {
     @Test
     public void testBrokenCompile() {
         ArtifactSource source = new EmptyArtifactSource("test");
-        FileArtifact file = new StringFileArtifact("MyEditor.ts", JavaConversions.asScalaBuffer(
+        FileArtifact file = new StringFileArtifact("MyEditor1.ts", JavaConversions.asScalaBuffer(
+                Arrays.asList(new String[] { ".atomist", "editors" })), brokenEditorTS);
+        source = source.plus(file);
+        file = new StringFileArtifact("MyEditor2.ts", JavaConversions.asScalaBuffer(
                 Arrays.asList(new String[] { ".atomist", "editors" })), brokenEditorTS);
         source = source.plus(file);
 
         TypeScriptCompiler compiler = new TypeScriptCompiler(CompilerFactory.create());
         assertTrue(compiler.supports(source));
         try {
-            ArtifactSource result = compiler.compile(source);
+            compiler.compile(source);
             fail();
         }
         catch (TypeScriptCompilationException e) {
             System.err.println(e.getMessage());
-            assertEquals(".atomist/editors/MyEditor.ts(4,23): error TS2304: Cannot find name 'Test'.\n" + 
+            assertEquals(".atomist/editors/MyEditor1.ts(4,23): error TS2304: Cannot find name 'Test'.\n" + 
                     "        let bla = new Test();\n" + 
-                    "                      ^\n",
+                    "                      ^\n" + 
+                    "\n" + 
+                    ".atomist/editors/MyEditor2.ts(4,23): error TS2304: Cannot find name 'Test'.\n" + 
+                    "        let bla = new Test();\n" + 
+                    "                      ^\n" + 
+                    "",
                     e.getMessage());
         }
     }

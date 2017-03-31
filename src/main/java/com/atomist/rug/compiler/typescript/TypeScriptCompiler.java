@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -30,6 +33,8 @@ import scala.Option;
 public class TypeScriptCompiler implements Compiler, CompilerListenerEnabled {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeScriptCompiler.class);
+    private static String PATTERN_STRING = "(.*)\\(([0-9]*),([0-9]*)\\):";
+    private static Pattern PATTERN = Pattern.compile(PATTERN_STRING);
 
     private com.atomist.rug.compiler.typescript.compilation.Compiler compiler;
 
@@ -109,6 +114,7 @@ public class TypeScriptCompiler implements Compiler, CompilerListenerEnabled {
 
     private void compileFiles(ArtifactSource source, ArtifactSourceScriptLoader scriptLoader,
             List<FileArtifact> files) {
+        List<String> errors = new ArrayList<>();
         files.stream().forEach(f -> {
             try {
                 listeners.forEach(l -> l.compileStarted(f.path()));
@@ -124,21 +130,24 @@ public class TypeScriptCompiler implements Compiler, CompilerListenerEnabled {
             }
             catch (Exception e) {
                 listeners.forEach(l -> l.compileFailed(f.path()));
-                handleException(e, source);
+                errors.add(handleException(e, source));
             }
         });
+        if (!errors.isEmpty()) {
+            throw new TypeScriptDetailedCompilationException(
+                    errors.stream().collect(Collectors.joining(System.lineSeparator())));
+        }
     }
 
-    private void handleException(Exception e, ArtifactSource source) {
+    private String handleException(Exception e, ArtifactSource source) {
         String msg = e.getMessage();
         if (msg != null && msg.contains("<#>")) {
             int start = msg.indexOf("<#>") + 3;
             int end = msg.lastIndexOf("<#>");
-            throw new TypeScriptDetailedCompilationException(msg.substring(start, end).trim(),
-                    source);
+            return formatString(msg.substring(start, end).trim(), source);
         }
         else {
-            throw new TypeScriptCompilationException("Compilation failed", e);
+            return msg;
         }
     }
 
@@ -159,6 +168,34 @@ public class TypeScriptCompiler implements Compiler, CompilerListenerEnabled {
         return asJavaCollection(source.allFiles()).stream()
                 .filter(f -> f.path().startsWith(".atomist/") && f.name().endsWith(".ts"))
                 .filter(f -> !f.path().startsWith(".atomist/node_modules/")).collect(toList());
+    }
+
+    private String formatString(String msg, ArtifactSource source) {
+        StringBuilder sb = new StringBuilder();
+        String[] lines = msg.split(System.lineSeparator());
+
+        for (String line : lines) {
+            sb.append(line).append(System.lineSeparator());
+            Matcher matcher = PATTERN.matcher(line);
+            if (matcher.find()) {
+                String fileName = matcher.group(1);
+                int lineCount = Integer.valueOf(matcher.group(2)) - 1;
+                int colCount = Integer.valueOf(matcher.group(3));
+                String content = source.findFile(fileName).get().content();
+
+                String[] contentLines = content.split(System.lineSeparator());
+
+                if (contentLines.length > lineCount) {
+                    line = contentLines[lineCount];
+                    sb.append(line).append(System.lineSeparator());
+                    for (int i = 1; i < Integer.valueOf(colCount); i++) {
+                        sb.append(" ");
+                    }
+                    sb.append("^").append(System.lineSeparator());
+                }
+            }
+        }
+        return sb.toString();
     }
 
     public static void main(String[] args) throws Exception {
