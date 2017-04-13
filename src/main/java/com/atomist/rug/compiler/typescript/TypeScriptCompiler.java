@@ -119,7 +119,8 @@ public class TypeScriptCompiler implements Compiler, CompilerListenerEnabled {
             try {
                 listeners.forEach(l -> l.compileStarted(f.path()));
                 compiler.compile(f.path(), scriptLoader);
-                Option<FileArtifact> file = scriptLoader.result().findFile(f.path());
+                Option<FileArtifact> file = scriptLoader.result()
+                        .findFile(f.path().replaceAll(".ts", ".js"));
                 if (file.isDefined()) {
                     listeners.forEach(l -> l.compileSucceeded(f.path(), file.get().content()));
                 }
