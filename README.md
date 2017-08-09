@@ -1,7 +1,6 @@
 # Atomist 'rug-typescript-compiler'
 
 [![Build Status](https://travis-ci.org/atomist/rug-typescript-compiler.svg?branch=master)](https://travis-ci.org/atomist/rug-typescript-compiler)
-[![Slack Status](https://join.atomist.com/badge.svg)](https://join.atomist.com/)
 
 Atomist Rug [TypeScript][ts] compiler.
 
